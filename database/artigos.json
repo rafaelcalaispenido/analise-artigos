@@ -1,0 +1,93 @@
+{
+  "artigos": [
+    {
+      "id": "6a52c29a-b424-4cf2-81c5-24f4f7218d41",
+      "top": 33,
+      "assunto": "Shopify",
+      "analista": "Alexandre",
+      "titulo": "Como habilitar a integração da Shopify na eNotas",
+      "linkPrincipal": "https://atendimento.enotas.com.br/hc/pt-br/articles/35773472220813--Shopify-Como-habilitar-a-integra%C3%A7%C3%A3o-na-eNotas",
+      "linksUnificados": [
+        "https://atendimento.enotas.com.br/hc/pt-br/articles/37623033870349--Shopify-Porque-devo-informar-o-custo-do-item-em-meus-produtos"
+      ],
+      "status": "homologacao",
+      "dataSalvo": "2026-05-19T17:06:49.823Z"
+    },
+    {
+      "id": "490cc181-c531-491f-9c90-486ac1a0e23e",
+      "top": 22,
+      "assunto": "Stripe",
+      "analista": "Alexandre",
+      "titulo": "Como habilitar a integração entre eNotas e Stripe",
+      "linkPrincipal": "https://atendimento.enotas.com.br/hc/pt-br/articles/35773419614349",
+      "linksUnificados": [
+        "https://atendimento.enotas.com.br/hc/pt-br/articles/35773349842189",
+        "https://atendimento.enotas.com.br/hc/pt-br/articles/35773373295501"
+      ],
+      "status": "homologacao",
+      "dataSalvo": "2026-05-15T10:33:35.686Z"
+    },
+    {
+      "id": "da43d3a2-01a6-4915-9efb-403cc137e862",
+      "top": 1,
+      "assunto": "Portal Nacional",
+      "analista": "Luana",
+      "titulo": "Como emitir NFS-e no modelo Nacional pelo eNotas?",
+      "linkPrincipal": "https://suportehotmart.zendesk.com/knowledge/editor/01JYP5YWMW8PSFNMGKB62VMY3F/pt-br?brand_id=35516588469133",
+      "linksUnificados": [
+        "https://suportehotmart.zendesk.com/knowledge/editor/01KB5K4PASR8GZPEW0XJEAF8V4/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01K04GVE37FY8ZG3JH0F1YCM6Q/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01JYP6RRYJBG9HDZQ73A6QKJFZ/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01K4R15VJJXZ6HZCMYQHK641SZ/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01K25J46DJS975Y0CCHYXTG26C/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01JZQXNJ9XF70EGS1DDN3D0XS1/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01K4R2YKJDXFA38WCGT5WMNXC3/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01KJ6040C93CJ3V4428PR0S26J/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01K3KFVVB999C1YXACJ3K1P0HC/pt-br?brand_id=35516588469133",
+        "https://suportehotmart.zendesk.com/knowledge/editor/01JYM4058XBMJP1BQVQP9QM0CJ/pt-br?brand_id=35516588469133"
+      ],
+      "status": "homologacao",
+      "dataSalvo": "2026-05-12T11:57:41.468Z"
+    },
+    {
+      "id": "f6068d6b-895e-4285-89b1-61e7a91bd53d",
+      "top": null,
+      "assunto": "Campo descrição NFS-e/NF-e",
+      "analista": "Calais",
+      "titulo": "[Menu Vendas] Como preencher o campo de observações em uma nota fiscal",
+      "linkPrincipal": "https://atendimento.enotas.com.br/hc/pt-br/articles/35773500257421",
+      "linksUnificados": [
+        "https://atendimento.enotas.com.br/hc/pt-br/articles/35773505514125",
+        "https://atendimento.enotas.com.br/hc/pt-br/articles/35773483414413"
+      ],
+      "status": "producao",
+      "dataSalvo": "2026-05-15T11:44:28.959Z"
+    },
+    {
+      "id": "4f9d072d-74b9-4755-88a3-59752f773543",
+      "top": 19,
+      "assunto": "Nota de Devolução",
+      "analista": "Alexandre",
+      "titulo": "Como emitir nota de devolução na eNotas",
+      "linkPrincipal": "https://atendimento.enotas.com.br/hc/pt-br/articles/35773390983309",
+      "linksUnificados": [
+        "https://atendimento.enotas.com.br/hc/pt-br/articles/35773797692173"
+      ],
+      "status": "homologacao",
+      "dataSalvo": "2026-05-15T10:33:05.519Z"
+    }
+  ],
+  "metadata": {
+    "totalArtigos": 5,
+    "ultimaAtualizacao": "2026-05-22T00:00:00.000Z",
+    "analistas": [
+      "Alexandre",
+      "Luana",
+      "Calais"
+    ],
+    "driveLinks": {
+      "Brena": "",
+      "Luana": "https://drive.google.com/drive/folders/1nBNAENFs32Avp2HmFrwAp4crGIN64D0y"
+    }
+  }
+}
