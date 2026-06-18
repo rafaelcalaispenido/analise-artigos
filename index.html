@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Conhecimento — eNotas</title>
+  <link rel="icon" href="logo-enotas.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="logo-enotas.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+  <style>
+    :root {
+      --primary: #7b3fc5; --ph: #6930b0; --pl: #f3eeff; --pm: #e2d0f8;
+      --bg: #f5f6fa; --white: #fff; --border: #e5e7eb; --border2: #d1d5db;
+      --text: #111827; --muted: #6b7280; --dim: #9ca3af;
+      --green: #16a34a; --gl: #f0fdf4; --gb: #bbf7d0;
+      --blue: #2563eb; --bl: #eff6ff;
+      --orange: #d97706; --red: #dc2626; --rl: #fef2f2;
+      --sw: 228px; --th: 64px;
+      --ss: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --sm: 0 4px 12px rgba(0,0,0,.08);
+      --sl: 0 8px 24px rgba(0,0,0,.12);
+      --r: 8px; --rs: 6px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+    /* ─── SIDEBAR ─── */
+    #sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sw); background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 200; }
+    .sh { padding: 18px 18px 14px; border-bottom: 1px solid var(--border); }
+    .sh-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .sh-logo img { height: 26px; width: auto; object-fit: contain; }
+    .logo-fb { height: 26px; display: none; align-items: center; font-weight: 700; font-size: 14px; color: var(--primary); }
+    .sh-title { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .s-analyst { margin: 12px 14px 0; padding: 9px 11px; border-radius: var(--rs); background: var(--pl); border: 1px solid var(--pm); display: flex; align-items: center; justify-content: space-between; }
+    .an-name { font-weight: 600; font-size: 13px; color: var(--primary); }
+    .an-ch { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; }
+    .an-ch:hover { color: var(--primary); }
+    .s-analyst-empty { margin: 12px 14px 0; padding: 9px 11px; border-radius: var(--rs); background: #fafafa; border: 1px dashed var(--border2); font-size: 12px; color: var(--muted); text-align: center; }
+    .s-nav { flex: 1; padding: 8px 10px; overflow-y: auto; }
+    .nlbl { font-size: 10.5px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .07em; padding: 10px 8px 4px; }
+    .ni { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--rs); color: var(--muted); font-size: 13.5px; font-weight: 500; cursor: pointer; transition: all .13s; margin-bottom: 1px; }
+    .ni:hover { background: var(--bg); color: var(--text); }
+    .ni.active { background: var(--pl); color: var(--primary); font-weight: 600; }
+    .ni-ico { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+    .nbadge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 30px; background: var(--pl); color: var(--primary); }
+    .s-foot { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--dim); display: flex; align-items: center; gap: 6px; }
+    .sdot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; transition: all .3s; }
+    .sdot.ok  { background: var(--green); box-shadow: 0 0 0 2px #dcfce7; }
+    .sdot.err { background: var(--red);   box-shadow: 0 0 0 2px #fee2e2; }
+    .sdot.spin { background: var(--orange); animation: blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* ─── MAIN ─── */
+    #main { margin-left: var(--sw); min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--border); height: var(--th); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+    .tb-left { min-width: 100px; }
+    .tb-center { flex: 1; text-align: center; }
+    .tb-center h1 { font-size: 15px; font-weight: 700; }
+    .tb-center p  { font-size: 12px; color: var(--muted); }
+    .tb-right { display: flex; align-items: center; gap: 8px; min-width: 100px; justify-content: flex-end; }
+    .pbadge { font-size: 11.5px; font-weight: 600; padding: 4px 12px; border-radius: 30px; background: var(--pl); color: var(--primary); border: 1px solid var(--pm); }
+    .content { padding: 24px 28px; flex: 1; }
+
+    /* ─── BUTTONS ─── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--rs); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all .13s; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--ph); }
+    .btn-outline { background: var(--white); color: var(--text); border-color: var(--border2); }
+    .btn-outline:hover { background: var(--bg); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover { filter: brightness(.92); }
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+    .btn-danger { background: var(--white); color: var(--red); border-color: #fca5a5; }
+    .btn-danger:hover { background: var(--rl); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ─── VIEWS ─── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ─── HOME ─── */
+    .home-wrap { max-width: 700px; margin: 40px auto; text-align: center; }
+    .home-wrap h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .home-wrap .sub { color: var(--muted); margin-bottom: 32px; }
+    .ac-grid { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
+    .ac { background: var(--white); border: 2px solid var(--border); border-radius: 12px; padding: 28px 24px; cursor: pointer; transition: all .18s; flex: 1; min-width: 155px; max-width: 195px; box-shadow: var(--ss); }
+    .ac:hover { border-color: var(--primary); box-shadow: var(--sl); transform: translateY(-2px); }
+    .ac.sel { border-color: var(--primary); background: var(--pl); }
+    .ac-av { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; margin: 0 auto 12px; color: #fff; }
+    .av-b { background: #7c3aed; }
+    .av-a { background: #2563eb; }
+    .av-l { background: #059669; }
+    .av-c { background: #0891b2; }  /* Calais — teal */
+    .av-r { background: #d97706; }  /* Rapha — amber */
+
+    /* Quill toolbar — Caixa expansiva button */
+    /* Caixa Expansiva — BlockEmbed no editor Quill */
+    .ql-editor .ql-caixa-expansiva { display: block; margin: 8px 0; }
+    .ql-editor .ql-caixa-expansiva table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #ccc; border-radius: 10px; overflow: hidden; }
+    .ql-editor .ql-caixa-expansiva details { display: block; }
+    .ql-editor .ql-caixa-expansiva summary { padding: 14px; display: block; cursor: pointer; list-style: none; }
+    .ql-editor .ql-caixa-expansiva summary::-webkit-details-marker { display: none; }
+    .ql-editor .ql-caixa-expansiva summary::marker { display: none; }
+    /* Aviso/Callout — BlockEmbed no editor Quill */
+    .ql-editor .ql-aviso { display: block; margin: 8px 0; outline: none !important; border: none !important; box-shadow: none !important; }
+    .ql-editor .ql-aviso table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #333; border-radius: 4px; background-color: #fff; }
+    .ql-editor .ql-aviso td { padding: 10px 14px; font-size: 13.5px; line-height: 1.6; }
+    .ql-editor .ql-aviso .aviso-edit-btn { float: right; padding: 2px 9px; font-size: 11.5px; font-weight: 600; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #fff; color: #555; transition: all .13s; margin-left: 8px; }
+    .ql-editor .ql-aviso .aviso-edit-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--pl); }
+    /* Aviso modal */
+    .aviso-preview { background: #fff; border: 1px solid #333; border-radius: 4px; padding: 10px 14px; font-size: 13.5px; line-height: 1.6; margin-bottom: 14px; }
+    .ac-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .ac-info { font-size: 12px; color: var(--muted); }
+    .ac-prog { margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--primary); }
+
+    /* ─── TOPICS ─── */
+    .topics-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .topics-head h2 { font-size: 17px; font-weight: 700; }
+    .tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 12px; }
+    .tc { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; cursor: pointer; transition: all .14s; display: flex; align-items: center; gap: 12px; box-shadow: var(--ss); }
+    .tc:hover { border-color: var(--primary); box-shadow: var(--sm); }
+    .tc.done    { border-left: 3px solid var(--green); }
+    .tc.pending { border-left: 3px solid var(--border2); }
+    .tc-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 6px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--muted); }
+    .tc.done .tc-num { background: var(--gl); color: var(--green); }
+    .tc-body { flex: 1; min-width: 0; }
+    .tc-name { font-weight: 600; font-size: 13.5px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tc-st { font-size: 11.5px; }
+    .tc.done    .tc-st { color: var(--green); }
+    .tc.pending .tc-st { color: var(--muted); }
+    .tc-arr { color: var(--dim); margin-left: auto; font-size: 16px; flex-shrink: 0; }
+    /* Drive button inside topic card */
+    .tc-drive {
+      flex-shrink: 0; padding: 5px 11px; border-radius: 30px;
+      background: var(--white); border: 1px solid var(--border2);
+      color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all .13s; display: flex; align-items: center; gap: 4px;
+      white-space: nowrap;
+    }
+    .tc-drive:hover { border-color: var(--primary); color: var(--primary); background: var(--pl); }
+    .tc.done .tc-drive { border-color: var(--pm); color: var(--primary); }
+    .tc.done .tc-drive:hover { background: var(--pl); }
+
+    /* Drive Modal */
+    .modal-ov { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-ov.open { display: flex; }
+    .modal-box { background: var(--white); border-radius: 12px; width: 100%; max-width: 560px; box-shadow: var(--sl); overflow: hidden; animation: mIn .2s ease; }
+    @keyframes mIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:none} }
+    .modal-mh { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 22px 16px; border-bottom: 1px solid var(--border); }
+    .modal-mh .m-badge { display: inline-block; padding: 3px 10px; border-radius: 30px; background: var(--pl); color: var(--primary); font-size: 11.5px; font-weight: 700; margin-bottom: 4px; }
+    .modal-mh h3 { font-size: 15px; font-weight: 700; margin: 0; }
+    .modal-close { background: none; border: none; font-size: 18px; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 4px; line-height: 1; }
+    .modal-close:hover { background: var(--bg); color: var(--text); }
+    .modal-mb { padding: 20px 22px; }
+    .modal-intro { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .modal-list { list-style: none; padding: 0; counter-reset: ml; margin-bottom: 18px; }
+    .modal-list li { counter-increment: ml; display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; line-height: 1.55; align-items: flex-start; }
+    .modal-list li:last-child { border-bottom: none; }
+    .modal-list li::before { content: counter(ml); flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+    .modal-ex { margin-top: 8px; background: #fafafa; border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: var(--rs); padding: 10px 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8; }
+    .modal-drive-row { border-top: 1px solid var(--border); padding-top: 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .modal-drive-label { font-size: 13.5px; font-weight: 600; color: var(--text); white-space: nowrap; flex-shrink: 0; }
+    .modal-input-row { display: flex; gap: 8px; flex: 1; min-width: 260px; }
+    .modal-input-row .fi { flex: 1; }
+
+    /* ─── FORM ─── */
+    .form-wrap { max-width: 800px; }
+    .form-head { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .fh-badge { padding: 4px 12px; border-radius: 30px; background: var(--pl); color: var(--primary); font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .form-head h2 { font-size: 16px; font-weight: 700; }
+    .fg { margin-bottom: 20px; }
+    .flbl { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; }
+    .flbl .req { color: var(--red); }
+    .fi, .fs { width: 100%; padding: 9px 12px; border: 1px solid var(--border2); border-radius: var(--rs); font-family: inherit; font-size: 13.5px; background: var(--white); color: var(--text); outline: none; transition: border-color .13s, box-shadow .13s; }
+    .fi:focus, .fs:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(123,63,197,.12); }
+    .fi::placeholder { color: var(--dim); }
+    .fhint { font-size: 11.5px; color: var(--muted); margin-top: 5px; }
+    .links-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+    .lr { display: flex; gap: 7px; align-items: center; }
+    .lr .fi { flex: 1; }
+    .rm-btn { flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--rs); background: var(--white); border: 1px solid #fca5a5; color: var(--red); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: background .13s; }
+    .rm-btn:hover { background: var(--rl); }
+    .add-link-btn { font-size: 12.5px; color: var(--primary); background: none; border: 1px dashed var(--pm); border-radius: var(--rs); padding: 6px 14px; cursor: pointer; font-family: inherit; transition: all .13s; }
+    .add-link-btn:hover { background: var(--pl); }
+    .qh { border: 1px solid var(--border2); border-radius: var(--rs); overflow: hidden; transition: border-color .13s, box-shadow .13s; }
+    .qh:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(123,63,197,.12); }
+    .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid var(--border) !important; background: #fafafa; flex-wrap: wrap; }
+    /* Barra customizada abaixo do toolbar nativo do Quill */
+    .ql-custom-bar { padding: 5px 8px; background: #fafafa; border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .ql-container.ql-snow { border: none !important; }
+    .ql-editor { min-height: 240px; font-family: 'Inter', sans-serif !important; font-size: 13.5px !important; }
+    .ql-editor.ql-blank::before { font-style: normal !important; color: var(--dim) !important; }
+    .ql-snow .ql-picker-options { background: var(--white) !important; }
+    .form-actions { display: flex; gap: 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); align-items: center; flex-wrap: wrap; }
+    .editing-lbl { font-size: 12.5px; color: var(--primary); display: flex; align-items: center; gap: 6px; }
+    .editing-lbl a { color: var(--muted); font-size: 11.5px; cursor: pointer; text-decoration: underline; }
+
+    /* ─── DASHBOARD ─── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .kc { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 18px 20px; box-shadow: var(--ss); position: relative; overflow: hidden; }
+    .kc::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .kc.cg::after { background: var(--green); }
+    .kc.cp::after { background: var(--primary); }
+    .kc.cb::after { background: var(--blue); }
+    .kc.ce::after { background: #059669; }
+    .kc.co::after { background: var(--orange); }
+    .kc.ct::after { background: #0891b2; }  /* Calais */
+    .klbl { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+    .kval { font-size: 28px; font-weight: 700; line-height: 1; }
+    .ksub { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+    .row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-bottom: 18px; }
+    @media(max-width:900px){ .row2 { grid-template-columns: 1fr; } }
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--ss); }
+    .card-h { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .card-t { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dg { background: var(--green); }
+    .dp { background: var(--primary); }
+    .db { background: var(--blue); }
+    .de { background: #059669; }
+    .card-b { padding: 16px 18px; }
+    .pr { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
+    .pn { width: 80px; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .pb { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+    .pf { height: 100%; border-radius: 4px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+    .fB { background: #7c3aed; }
+    .fA { background: #2563eb; }
+    .fL { background: #059669; }
+    .fC { background: #0891b2; }
+    .fR { background: #d97706; }
+    .pp { width: 36px; text-align: right; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .twrap { overflow-x: auto; }
+    .dt { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .dt th { text-align: left; padding: 9px 14px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; background: #fafafa; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .dt td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .dt tr:last-child td { border-bottom: none; }
+    .dt tr:hover td { background: #fafafa; }
+    .tag { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 30px; font-size: 11.5px; font-weight: 600; }
+    .tg  { background: var(--gl); color: var(--green); border: 1px solid var(--gb); }
+    .tgr { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+    .tp  { background: var(--pl); color: var(--primary); border: 1px solid var(--pm); }
+    .tb2 { background: var(--bl); color: var(--blue); border: 1px solid #bfdbfe; }
+    .te  { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .ttl { background: #ecfeff; color: #0891b2; border: 1px solid #a5f3fc; }
+    .to  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .t-homolog { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .t-prod    { background: var(--gl); color: var(--green); border: 1px solid var(--gb); }
+    .t-interno { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .t-externo { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+    .tc-dup { flex-shrink: 0; padding: 4px 9px !important; font-size: 11.5px !important; }
+    /* Produção view */
+    .prod-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid; }
+    .prod-col-title.homolog { color: #d97706; border-color: #fde68a; }
+    .prod-col-title.prod    { color: var(--green); border-color: var(--gb); }
+    .prod-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 13px 16px; margin-bottom: 10px; box-shadow: var(--ss); transition: box-shadow .13s; min-width: 0; overflow: hidden; }
+    .prod-card:hover { box-shadow: var(--sm); }
+    .prod-card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; min-width: 0; }
+    .prod-card-link { font-size: 12px; color: var(--primary); text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+    .prod-card-link:hover { text-decoration: underline; }
+    .lnk a { color: var(--primary); text-decoration: none; font-size: 12.5px; }
+    .lnk a:hover { text-decoration: underline; }
+    .fb { display: flex; align-items: center; justify-content: space-between; }
+    .mt4 { margin-top: 16px; }
+
+    /* ─── IMAGES ─── */
+    .img-wrap { max-width: 740px; }
+    .inst { list-style: none; counter-reset: s; }
+    .inst li { counter-increment: s; display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; line-height: 1.6; }
+    .inst li:last-child { border-bottom: none; }
+    .inst li::before { content: counter(s); flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .mono { font-family: 'Courier New', monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; color: var(--primary); }
+    .ex-box { background: #fafafa; border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: var(--rs); padding: 14px 16px; margin-top: 16px; font-size: 13px; line-height: 1.8; font-family: 'Courier New', monospace; }
+    .ex-lbl { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    .drive-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; flex-wrap: wrap; }
+    .drive-row .fi { flex: 2; min-width: 200px; font-size: 12.5px; padding: 6px 10px; }
+
+    /* ─── INFO TAB ─── */
+    .info-wrap { max-width: 620px; }
+    .info-wrap .card { margin-bottom: 16px; }
+    .info-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .notice { padding: 12px 14px; border-radius: var(--rs); border: 1px solid; font-size: 12.5px; line-height: 1.5; }
+    .n-info { background: var(--bl); border-color: #bfdbfe; color: #1d4ed8; }
+    .n-ok   { background: var(--gl); border-color: var(--gb); color: var(--green); }
+    .n-err  { background: var(--rl); border-color: #fca5a5; color: var(--red); }
+    .n-warn { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+    .info-row { display: flex; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .ir-lbl { font-weight: 600; min-width: 130px; color: var(--muted); font-size: 12px; }
+    .info-row .ir-val { color: var(--text); font-family: 'Courier New', monospace; font-size: 12.5px; word-break: break-all; }
+
+    /* ─── TOAST / LOADER ─── */
+    #toast-area { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 11px 16px; border-radius: var(--rs); font-size: 13px; font-weight: 500; box-shadow: var(--sl); display: flex; align-items: center; gap: 8px; max-width: 320px; animation: su .22s ease; }
+    .toast.ok  { background: #14532d; color: #d1fae5; }
+    .toast.err { background: #7f1d1d; color: #fee2e2; }
+    .toast.inf { background: #1e3a5f; color: #dbeafe; }
+    @keyframes su { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    #loader { position: fixed; inset: 0; background: rgba(255,255,255,.7); display: none; align-items: center; justify-content: center; z-index: 9000; }
+    #loader.on { display: flex; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .65s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    /* Caixa Expansiva modal */
+    .faq-row-item { background: #fafafa; border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+    .faq-row-fields { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .faq-row-num { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+    /* Mini Quill dentro do modal de caixa expansiva */
+    .faq-mini-editor { border: 1px solid var(--border2); border-radius: var(--rs); overflow: hidden; transition: border-color .13s; }
+    .faq-mini-editor:focus-within { border-color: var(--primary); }
+    .faq-mini-editor .ql-toolbar.ql-snow { border: none !important; border-bottom: 1px solid var(--border) !important; background: #fafafa; padding: 5px; }
+    .faq-mini-editor .ql-container.ql-snow { border: none !important; }
+    .faq-mini-editor .ql-editor { min-height: 80px; font-family: 'Inter', sans-serif !important; font-size: 13.5px !important; padding: 10px 12px; }
+    .faq-mini-editor .ql-editor.ql-blank::before { font-style: normal !important; color: var(--dim) !important; }
+    .faq-mini-editor .ql-snow .ql-stroke { stroke: var(--muted); }
+    .faq-mini-editor .ql-snow .ql-fill  { fill:  var(--muted); }
+    .faq-add-row { width: 100%; padding: 10px; border: 1px dashed var(--border2); border-radius: var(--rs); background: none; font-family: inherit; font-size: 13px; color: var(--muted); cursor: pointer; transition: all .13s; }
+    .faq-add-row:hover { border-color: var(--primary); color: var(--primary); background: var(--pl); }
+    /* Modal body scrollable para múltiplas linhas */
+    #faqModal .modal-mb { max-height: 75vh; overflow-y: auto; padding-right: 4px; }
+    /* Botão "editar" em cada linha da caixa no editor Quill */
+    .ql-editor .ql-caixa-expansiva .kb-edit-btn { flex-shrink: 0; padding: 3px 10px; font-size: 12px; font-weight: 600; border: 1px solid var(--border2); border-radius: 4px; cursor: pointer; background: var(--white); color: var(--muted); transition: all .13s; }
+    .ql-editor .ql-caixa-expansiva .kb-edit-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--pl); }
+    /* Custom topic field for Calais */
+    #fCustomTopicWrap { display: none; }
+    /* Quill toolbar FAQ button */
+    .ql-faq-btn { height: 24px; padding: 0 8px; border: 1px solid #ccc; border-radius: 3px; font-size: 11.5px; font-weight: 600; cursor: pointer; background: #fff; font-family: 'Inter', sans-serif; color: #444; white-space: nowrap; }
+    .ql-faq-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--pl); }
+    .empty-state { text-align: center; padding: 36px 20px; color: var(--muted); }
+    .empty-state .ei { font-size: 36px; margin-bottom: 10px; display: block; }
+    .empty-state p { font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sh">
+    <div class="sh-logo">
+      <img id="logoImg" src="logo-enotas.jpg" alt="eNotas">
+      <div class="logo-fb" id="logoFb">📋 eNotas</div>
+    </div>
+    <div class="sh-title">Base de Conhecimento · Central de Ajuda</div>
+  </div>
+
+  <div id="sAnalyst" class="s-analyst-empty">Nenhum analista selecionado</div>
+
+  <nav class="s-nav">
+    <div class="nlbl">Navegação</div>
+    <div class="ni active" id="nav-home"      onclick="goTo('home')">      <span class="ni-ico">🏠</span> Início</div>
+    <div class="ni"         id="nav-topics"    onclick="goTo('topics')">    <span class="ni-ico">📋</span> Artigos Externos <span class="nbadge" id="navBadge">—</span></div>
+    <div class="ni"         id="nav-internos"  onclick="goTo('internos')">  <span class="ni-ico">🗂️</span> Artigos Internos <span class="nbadge" id="navBadgeInt">—</span></div>
+    <div class="nlbl">Geral</div>
+    <div class="ni"         id="nav-producao"  onclick="goTo('producao')">  <span class="ni-ico">🚀</span> Produção <span class="nbadge" id="navBadgeProd">—</span></div>
+    <div class="ni"         id="nav-dashboard" onclick="goTo('dashboard')"> <span class="ni-ico">📊</span> Dashboard</div>
+    <div class="ni"         id="nav-info"      onclick="goTo('info')">      <span class="ni-ico">ℹ️</span> Informações</div>
+  </nav>
+
+  <div class="s-foot">
+    <span class="sdot spin" id="sdot"></span>
+    <span id="stxt">Conectando…</span>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="topbar">
+    <div class="tb-left"></div>
+    <div class="tb-center">
+      <h1>Gestão de Conhecimento — eNotas</h1>
+      <p id="tbsub">Base de Conhecimento</p>
+    </div>
+    <div class="tb-right">
+      <span class="pbadge">TOP 50 · 2026</span>
+      <button class="btn btn-outline btn-sm" onclick="loadData()" title="Sincronizar">🔄</button>
+      <button class="btn btn-green  btn-sm" onclick="downloadXLSX()">⬇️ Planilha</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="view active" id="view-home">
+      <div class="home-wrap">
+        <h2>Quem é você?</h2>
+        <p class="sub">Selecione seu nome para acessar seus tópicos e preencher as informações dos artigos.</p>
+        <div class="ac-grid">
+          <div class="ac" id="ac-Brena"     onclick="selectAnalyst('Brena')">
+            <div class="ac-av av-b">K</div>
+            <div class="ac-name">Brena</div>
+            <div class="ac-info">TOP 2 – 17 · 16 tópicos</div>
+            <div class="ac-prog" id="prog-Brena">0 / 17</div>
+          </div>
+          <div class="ac" id="ac-Alexandre" onclick="selectAnalyst('Alexandre')">
+            <div class="ac-av av-a">A</div>
+            <div class="ac-name">Alexandre</div>
+            <div class="ac-info">TOP 18 – 34 · 17 tópicos</div>
+            <div class="ac-prog" id="prog-Alexandre">0 / 17</div>
+          </div>
+          <div class="ac" id="ac-Luana"     onclick="selectAnalyst('Luana')">
+            <div class="ac-av av-l">L</div>
+            <div class="ac-name">Luana</div>
+            <div class="ac-info">TOP 1, 35–37 e 40 · 5 tópicos</div>
+            <div class="ac-prog" id="prog-Luana">0 / 5</div>
+          </div>
+          <div class="ac" id="ac-Calais"    onclick="selectAnalyst('Calais')">
+            <div class="ac-av av-c">C</div>
+            <div class="ac-name">Calais</div>
+            <div class="ac-info">TOP 38–39, 41–44 · Temas Livres</div>
+            <div class="ac-prog" id="prog-Calais">0 preenchidos</div>
+          </div>
+          <div class="ac" id="ac-Rapha"     onclick="selectAnalyst('Rapha')">
+            <div class="ac-av av-r">R</div>
+            <div class="ac-name">Rapha</div>
+            <div class="ac-info">TOP 45 – 50 · 6 tópicos</div>
+            <div class="ac-prog" id="prog-Rapha">0 / 6</div>
+          </div>
+        </div>
+        <p style="margin-top:28px;font-size:12px;color:var(--dim)">Você pode trocar de analista a qualquer momento clicando em <strong>"Trocar"</strong> no menu lateral.</p>
+      </div>
+    </div>
+
+    <!-- TOPICS -->
+    <div class="view" id="view-topics">
+      <div class="topics-head">
+        <h2 id="topicsH">Artigos Externos</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline btn-sm" onclick="openDriveModal()" id="btnDrive">🖼️ Drive</button>
+          <button class="btn btn-outline btn-sm" id="btnNovoTema" onclick="openNovoTema()" style="display:none;border-color:#0891b2;color:#0891b2">+ Novo Tema</button>
+          <button class="btn btn-primary btn-sm" onclick="openNewForm()">+ Preencher novo</button>
+        </div>
+      </div>
+      <div class="tgrid" id="tgrid"></div>
+    </div>
+
+    <!-- INTERNOS -->
+    <div class="view" id="view-internos">
+      <div class="topics-head">
+        <h2 id="internosH">Artigos Internos</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary btn-sm" onclick="openNewInternalForm()">+ Preencher novo</button>
+        </div>
+      </div>
+      <div class="tgrid" id="tgridInt"></div>
+      <h3 style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 12px">Artigos internos já criados</h3>
+      <div class="tgrid" id="internosList"></div>
+    </div>
+
+    <!-- FORM -->
+    <div class="view" id="view-form">
+      <div class="form-wrap">
+        <div class="form-head">
+          <span class="fh-badge" id="fBadge">#—</span>
+          <h2 id="fTitle">Selecione um tópico</h2>
+          <span class="tag" id="fTipoBadge" style="margin-left:auto;display:none"></span>
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Assunto <span class="req">*</span></label>
+          <select class="fs" id="fAss" onchange="onAssChange()">
+            <option value="">— Selecione um tópico —</option>
+          </select>
+          <!-- Campo de tema livre — visível apenas para Calais ao selecionar "Novo Tema" -->
+          <div id="fCustomTopicWrap" style="margin-top:8px">
+            <input class="fi" type="text" id="fCustomTopic" placeholder="Digite o nome do novo tema…" />
+            <p class="fhint">Este tema não faz parte do TOP 50 — exclusivo para Calais.</p>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Link do Artigo Principal <span class="req">*</span></label>
+          <input class="fi" type="url" id="fLink" placeholder="https://suporte.enotas.com.br/hc/pt-br/articles/…" />
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Links Unificados <span style="text-transform:none;font-weight:400;color:var(--muted)">(artigos que serão incorporados neste)</span></label>
+          <div class="links-list" id="linksList"></div>
+          <button class="add-link-btn" onclick="addLink()">+ Adicionar link</button>
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Título do Artigo</label>
+          <input class="fi" type="text" id="fTitulo" placeholder="Insira o título do artigo principal" />
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Conteúdo do Artigo</label>
+          <div class="qh"><div id="quillEditor"></div></div>
+          <p class="fhint">Use <strong>[inserir img-1]</strong>, <strong>[inserir img-2]</strong>… para indicar onde as imagens devem aparecer. Consulte a aba <em>Link Imagens</em> para o processo completo.</p>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btnSave" onclick="saveArticle()">Salvar Artigo</button>
+          <button class="btn btn-outline" id="btnSaveNext" onclick="saveAndNext()" style="border-color:var(--primary);color:var(--primary)">Salvar e ir para o próximo</button>
+          <button class="btn btn-outline" onclick="confirmClearForm()">Limpar</button>
+          <span class="editing-lbl" id="editLbl" style="display:none">✏️ Editando — <a onclick="cancelEdit()">cancelar</a></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUÇÃO -->
+    <div class="view" id="view-producao">
+      <div class="flex-between" style="margin-bottom:20px">
+        <h2 style="font-size:17px;font-weight:700">Produção</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="tag t-homolog" id="prodHomBadge">0 em Homologação</span>
+          <span class="tag t-prod"    id="prodProdBadge">0 em Produção</span>
+          <a href="https://rafaelcalaispenido.github.io/acompanhamento-artigos/" target="_blank" class="btn btn-outline btn-sm" style="margin-left:8px">🔗 Ver acompanhamento</a>
+          <button class="btn btn-outline btn-sm" onclick="refreshAndOpenDash()" title="Busca dados mais recentes e abre o dashboard de acompanhamento">🔄 Atualizar dashboard</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div>
+          <div class="prod-col-title homolog">⏳ Em Homologação</div>
+          <div id="homologList"></div>
+        </div>
+        <div>
+          <div class="prod-col-title prod">✅ Em Produção</div>
+          <div id="producaoList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="view" id="view-dashboard">
+      <div class="kpi-grid">
+        <div class="kc cg"><div class="klbl">Total Preenchidos</div><div class="kval" id="kT">0</div><div class="ksub">de 50 tópicos</div></div>
+        <div class="kc cp"><div class="klbl">Brena</div><div class="kval" id="kB">0</div><div class="ksub">de 16 tópicos</div></div>
+        <div class="kc cb"><div class="klbl">Alexandre</div><div class="kval" id="kA">0</div><div class="ksub">de 17 tópicos</div></div>
+        <div class="kc ce"><div class="klbl">Luana</div><div class="kval" id="kL">0</div><div class="ksub">de 5 tópicos</div></div>
+        <div class="kc ct"><div class="klbl">Calais</div><div class="kval" id="kC">0</div><div class="ksub">Temas Livres</div></div>
+        <div class="kc" style="overflow:hidden;position:relative"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#d97706"></div><div class="klbl">Rapha</div><div class="kval" id="kR">0</div><div class="ksub">de 6 tópicos</div></div>
+        <div class="kc co"><div class="klbl">Pendentes</div><div class="kval" id="kP">50</div><div class="ksub" id="kPct">0% concluído</div></div>
+        <div class="kc" style="overflow:hidden;position:relative"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#d97706"></div><div class="klbl">Homologação</div><div class="kval" id="kHomolog">0</div><div class="ksub">aguardando validação</div></div>
+        <div class="kc" style="overflow:hidden;position:relative"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--green)"></div><div class="klbl">Em Produção</div><div class="kval" id="kProd">0</div><div class="ksub">publicados</div></div>
+      </div>
+
+      <div class="row2">
+        <div class="card">
+          <div class="card-h"><div class="card-t"><span class="dot dp"></span>Progresso por Analista</div></div>
+          <div class="card-b">
+            <div class="pr"><span class="pn">Brena</span>    <div class="pb"><div class="pf fB" id="barB" style="width:0%"></div></div><span class="pp" id="pctB">0%</span></div>
+            <div class="pr"><span class="pn">Alexandre</span><div class="pb"><div class="pf fA" id="barA" style="width:0%"></div></div><span class="pp" id="pctA">0%</span></div>
+            <div class="pr"><span class="pn">Luana</span>    <div class="pb"><div class="pf fL" id="barL" style="width:0%"></div></div><span class="pp" id="pctL">0%</span></div>
+            <div class="pr"><span class="pn" style="color:#0891b2">Calais</span>   <div class="pb"><div class="pf fC" id="barC" style="width:0%"></div></div><span class="pp" id="pctC">—</span></div>
+            <div class="pr"><span class="pn" style="color:#d97706">Rapha</span>    <div class="pb"><div class="pf fR" id="barR" style="width:0%"></div></div><span class="pp" id="pctR">0%</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h fb">
+            <div class="card-t"><span class="dot dg"></span>Resumo por Analista</div>
+            <select class="fs btn-sm" id="dashFilter" onchange="renderDashTable()" style="width:auto;padding:4px 10px;font-size:12px">
+              <option value="">Todos</option><option>Brena</option><option>Alexandre</option><option>Luana</option><option>Calais</option><option>Rapha</option>
+            </select>
+          </div>
+          <div class="card-b" id="sumCards" style="display:flex;flex-direction:column;gap:0"></div>
+        </div>
+      </div>
+
+      <div class="card mt4">
+        <div class="card-h fb">
+          <div class="card-t"><span class="dot db"></span>Artigos Registrados</div>
+          <button class="btn btn-outline btn-sm" onclick="downloadXLSX()">⬇️ Baixar planilha</button>
+        </div>
+        <div class="twrap">
+          <table class="dt">
+            <thead><tr><th>TOP</th><th>Assunto</th><th>Analista</th><th>Artigo Principal</th><th>Links Unif.</th><th>Drive</th><th>Data</th><th>Ações</th></tr></thead>
+            <tbody id="dashTb"></tbody>
+          </table>
+          <div class="empty-state" id="dashEmpty" style="display:none">
+            <span class="ei">📄</span><p>Nenhum artigo registrado. Vá para <strong>Artigos Externos</strong> para começar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMAGES -->
+    <div class="view" id="view-images">
+      <div class="img-wrap">
+        <div class="card">
+          <div class="card-h"><div class="card-t"><span class="dot dp"></span>🖼️ Guia — Imagens dos Artigos</div></div>
+          <div class="card-b">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Siga o processo abaixo para disponibilizar as imagens que acompanharão cada artigo na Central de Ajuda.</p>
+            <ol class="inst">
+              <li>Insira as imagens no <strong>Google Drive compartilhado</strong> da equipe, dentro de pastas individuais para cada artigo.</li>
+              <li>Cada pasta deverá ter exatamente o <strong>nome do assunto/artigo principal</strong> conforme o TOP 50.<br>Exemplos: <span class="mono">Portal Nacional</span>, <span class="mono">Hotmart</span>, <span class="mono">Certificado</span></li>
+              <li>Nomeie as imagens em sequência: <span class="mono">img-1</span>, <span class="mono">img-2</span>, <span class="mono">img-3</span>… Sem espaços, somente hífens.</li>
+              <li>Salve em formato <strong>PNG ou JPG</strong>, com boa resolução (mín. 1200 px de largura) e sem dados sensíveis expostos.</li>
+              <li>No campo <strong>Conteúdo</strong> do formulário, indique onde cada imagem deve aparecer usando <span class="mono">[inserir img-N]</span>.</li>
+              <li>Após organizar no Drive, copie o link da <strong>pasta do artigo</strong> e cole no campo abaixo, na linha correspondente.</li>
+            </ol>
+            <div class="ex-box">
+              <div class="ex-lbl">Exemplo de referência no conteúdo</div>
+              1. Busque por "Central de Colaboradores" na barra de busca no menu lateral esquerdo.<br>
+              [inserir img-1]<br><br>
+              2. Clique em "Acessar" para abrir o módulo.<br>
+              [inserir img-2]<br><br>
+              3. Na tela inicial, selecione a empresa desejada.<br>
+              [inserir img-3]
+            </div>
+          </div>
+        </div>
+        <div class="card mt4">
+          <div class="card-h"><div class="card-t"><span class="dot dg"></span>🔗 Links do Drive por Artigo</div></div>
+          <div class="card-b">
+            <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px">Registre o link da pasta no Drive referente a cada artigo já preenchido.</p>
+            <div id="driveList"></div>
+            <div class="empty-state" id="driveEmpty" style="display:none"><span class="ei">🗂️</span><p>Nenhum artigo preenchido ainda.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="view" id="view-info">
+      <div class="info-wrap">
+        <div class="card">
+          <div class="card-h"><div class="card-t"><span class="dot dp"></span>ℹ️ Status da Conexão</div></div>
+          <div class="info-body">
+            <div id="connNotice" class="notice n-info">Verificando conexão com o banco de dados…</div>
+            <div class="info-row"><span class="ir-lbl">Banco de dados</span>  <span class="ir-val">GitHub Gist (privado)</span></div>
+            <div class="info-row"><span class="ir-lbl">Gist ID</span>         <span class="ir-val" id="infoGistId" style="letter-spacing:3px;color:var(--muted)">••••••••••••••••••••••••••••••••</span></div>
+            <div class="info-row"><span class="ir-lbl">Artigos salvos</span>  <span class="ir-val" id="infoCount">—</span></div>
+            <div class="info-row"><span class="ir-lbl">Última sinc.</span>    <span class="ir-val" id="infoSync">—</span></div>
+            <button class="btn btn-outline btn-sm" onclick="loadData()" style="align-self:flex-start">🔄 Sincronizar agora</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-h"><div class="card-t"><span class="dot dp"></span>📚 Boas Práticas para Criação de KBs</div></div>
+          <div style="padding:20px 22px;display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap">
+            <div style="flex:1;min-width:240px">
+              <p style="font-size:14px;line-height:1.7;color:var(--text);margin-bottom:14px">
+                Manter um padrão na criação dos artigos é essencial para garantir uma experiência consistente e de qualidade para os clientes da Central de Ajuda eNotas.
+              </p>
+              <p style="font-size:13.5px;line-height:1.6;color:var(--muted)">
+                Acesse o guia completo de boas práticas para entender a estrutura recomendada, o tom de voz, o uso de imagens e as principais diretrizes editoriais na elaboração dos seus artigos.
+              </p>
+            </div>
+            <a href="https://docs.google.com/document/d/1ln0YUkkF-pOTH4LQnKnnPgXv_PskbtNqemcXkIOgjhs/edit?tab=t.0#heading=h.qa4ajznqytx4"
+               target="_blank"
+               style="flex-shrink:0;display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(--primary);color:#fff;border-radius:var(--rs);font-size:13px;font-weight:600;text-decoration:none;transition:background .15s;align-self:center"
+               onmouseover="this.style.background='var(--ph)'"
+               onmouseout="this.style.background='var(--primary)'">
+              📄 Ver guia de boas práticas
+            </a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-t"><span class="dot db"></span>📋 Distribuição TOP 50</div></div>
+          <div class="twrap">
+            <table class="dt"><thead><tr><th>TOP</th><th>Assunto</th><th>Responsável</th><th>Status</th></tr></thead>
+            <tbody id="top50Body"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div id="toast-area"></div>
+<div id="loader"><div class="spinner"></div></div>
+
+<!-- COLAR HTML MODAL -->
+<div class="modal-ov" id="colarHtmlModal">
+  <div class="modal-box" style="max-width:700px">
+    <div class="modal-mh">
+      <h3>📥 Colar HTML no editor</h3>
+      <button class="modal-close" onclick="closeColarHtmlModal()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-mb">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Cole o HTML abaixo. Ao confirmar, o conteúdo será carregado no editor substituindo o que estiver nele.</p>
+      <textarea id="colarHtmlArea"
+        placeholder="Cole o HTML aqui…"
+        style="width:100%;min-height:220px;font-family:'Fira Code','Consolas',monospace;font-size:12px;line-height:1.6;padding:12px;border:1px solid var(--border2);border-radius:var(--rs);resize:vertical;outline:none;background:#fafafa;color:#1e1e1e;transition:border-color .13s"
+        onfocus="this.style.borderColor='var(--primary)'"
+        onblur="this.style.borderColor='var(--border2)'"></textarea>
+      <div style="display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" onclick="loadHtmlFromModal()">Carregar no editor</button>
+        <button class="btn btn-outline" onclick="closeColarHtmlModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AVISO MODAL -->
+<div class="modal-ov" id="avisoModal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-mh">
+      <h3>⚠️ Inserir Aviso</h3>
+      <button class="modal-close" onclick="closeAvisoModal()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-mb">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Escreva o texto do aviso. Ele aparecerá no artigo com o destaque ⚠️ IMPORTANTE!</p>
+      <textarea id="avisoText" class="faq-textarea" rows="3"
+        placeholder="Ex: A adição de informações em uma nota só pode ser realizada antes da emissão da nota fiscal."
+        style="width:100%;min-height:80px"
+        oninput="syncAvisoPreview()"></textarea>
+      <div id="avisoPreview" style="margin-top:12px;background:#fff;border:1px solid #333;border-radius:4px;padding:10px 14px;font-size:13.5px">
+        ⚠️ <strong>IMPORTANTE!</strong> <span id="avisoPreviewText" style="color:#9ca3af">Prévia do aviso…</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" id="btnInsertAviso" onclick="insertAviso()">Inserir no artigo</button>
+        <button class="btn btn-outline" onclick="closeAvisoModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CAIXA EXPANSIVA MODAL -->
+<div class="modal-ov" id="faqModal">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-mh">
+      <h3 id="faqModalTitle">Inserir Caixa Expansiva</h3>
+      <button class="modal-close" onclick="closeCaixaModal()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-mb">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Adicione as linhas da caixa expansiva. Cada linha tem um <strong>título</strong> (visível fechada) e um <strong>conteúdo</strong> (visível ao expandir). Você pode adicionar quantas linhas quiser.</p>
+      <div id="faqRows"></div>
+      <button class="faq-add-row" onclick="addCaixaRow()">+ Adicionar linha</button>
+      <div style="display:flex;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" id="btnInsertCaixa" onclick="insertCaixaHtml()">Inserir no artigo</button>
+        <button class="btn btn-outline" onclick="closeCaixaModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM CLEAR MODAL -->
+<div class="modal-ov" id="confirmClearModal">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-mh">
+      <div>
+        <div class="m-badge">Atenção</div>
+        <h3>Limpar formulário?</h3>
+      </div>
+    </div>
+    <div class="modal-mb">
+      <p id="confirmClearMsg" style="font-size:13.5px;color:var(--muted);margin-bottom:20px">Todos os dados preenchidos serão apagados. Esta ação não pode ser desfeita.</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="closeConfirmClear()">Cancelar</button>
+        <button class="btn btn-danger" onclick="doConfirmClear()">Sim, limpar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRIVE MODAL -->
+<div class="modal-ov" id="driveModal">
+  <div class="modal-box">
+    <div class="modal-mh">
+      <div>
+        <h3>🖼️ Link de Imagens</h3>
+      </div>
+      <button class="modal-close" onclick="closeDriveModal()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-mb">
+      <ul class="modal-list">
+        <li>Insira as imagens no Drive, dentro de subpastas referentes a cada artigo;</li>
+        <li>Essas pastas deverão ter o nome do artigo principal;</li>
+        <li>As imagens deverão ser nomeadas como <span class="mono">img-1</span>, <span class="mono">img-2</span>, <span class="mono">img-3</span>…</li>
+        <li>
+          As imagens deverão ser referenciadas no texto do conteúdo, exemplo:
+          <div class="modal-ex">1. Busque por "Central de Colaboradores" na barra de busca no menu lateral esquerdo.<br>[inserir img-1]</div>
+        </li>
+      </ul>
+      <div class="modal-drive-row">
+        <div class="modal-drive-label">Link do drive:</div>
+        <div class="modal-input-row">
+          <input class="fi" type="url" id="mDriveInput" placeholder="https://drive.google.com/drive/folders/…" />
+          <button class="btn btn-primary" onclick="saveModalDrive()">Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CREDENCIAIS  (token embaralhado + gist id)
+// ═══════════════════════════════════════════════════
+function _tk() {
+  // Token dividido em dois segmentos, cada um com base64 invertido
+  const a = '=YXYRRmT2R0UQNFaxIHerZ3Xwh2Z';
+  const b = '=EmZwRTO0oVcMRERBhEZzYGVHVHa';
+  return atob(a.split('').reverse().join('')) +
+         atob(b.split('').reverse().join(''));
+}
+function _gi() {
+  return ['bf5ebb21','c2dc31fe','186d7586','b501d0cf'].join('');
+}
+const GIST_FILE = 'artigos-kb-enotas.json';
+const GIST_API  = () => `https://api.github.com/gists/${_gi()}`;
+const GH_H = () => ({
+  'Content-Type' : 'application/json',
+  'Authorization': `token ${_tk()}`,
+  'Accept'       : 'application/vnd.github.v3+json',
+});
+
+// ═══════════════════════════════════════════════════
+//  DADOS — TOP 50
+// ═══════════════════════════════════════════════════
+const TOP50 = [
+  {top:1,  ass:"Portal Nacional",                    an:"Luana"},
+  {top:2,  ass:"Visão do Contador",                  an:"Brena"},
+  {top:3,  ass:"Hotmart",                            an:"Brena"},
+  {top:4,  ass:"Emissão de Notas",                   an:"Brena"},
+  {top:5,  ass:"Menu Gerenciar – Produtos",          an:"Brena"},
+  {top:6,  ass:"Importação de Notas",                an:"Brena"},
+  {top:7,  ass:"Erros SEFAZ",                        an:"Brena"},
+  {top:8,  ass:"Menu Gerenciar - Integrações",       an:"Brena"},
+  {top:9,  ass:"Alterar Cadastro",                   an:"Brena"},
+  {top:10, ass:"Tratamentos de Erro",                an:"Brena"},
+  {top:11, ass:"Erros Portal Nacional",              an:"Brena"},
+  {top:12, ass:"Problemas Tributários",              an:"Brena"},
+  {top:13, ass:"Coprodução Hotmart",                 an:"Brena"},
+  {top:14, ass:"Menu Gerenciar – Clientes",          an:"Brena"},
+  {top:15, ass:"Produto Físico",                     an:"Brena"},
+  {top:16, ass:"Cancelamento de Vendas",             an:"Brena"},
+  {top:17, ass:"Frete",                              an:"Brena"},
+  {top:18, ass:"Emitir Nota Teste",                  an:"Alexandre"},
+  {top:19, ass:"Nota de Devolução",                  an:"Alexandre"},
+  {top:20, ass:"NF-e",                               an:"Alexandre"},
+  {top:21, ass:"Financeiro",                         an:"Alexandre"},
+  {top:22, ass:"Stripe",                             an:"Alexandre"},
+  {top:23, ass:"API e Webhooks",                     an:"Alexandre"},
+  {top:24, ass:"NFS-e",                              an:"Alexandre"},
+  {top:25, ass:"Integração API",                     an:"Alexandre"},
+  {top:26, ass:"Liberação SEFAZ/PR",                 an:"Alexandre"},
+  {top:27, ass:"Data Competência x Emissão x Venda", an:"Alexandre"},
+  {top:28, ass:"Inutilização",                       an:"Alexandre"},
+  {top:29, ass:"Provedor Bling",                     an:"Alexandre"},
+  {top:30, ass:"Identificar Plano Contratado",       an:"Alexandre"},
+  {top:31, ass:"Marketplace Eduzz",                  an:"Alexandre"},
+  {top:32, ass:"Backoffice Gateway",                 an:"Alexandre"},
+  {top:33, ass:"Shopify",                            an:"Alexandre"},
+  {top:34, ass:"Provedor Beta",                      an:"Alexandre"},
+  {top:35, ass:"Provedor Nota Control",              an:"Luana"},
+  {top:36, ass:"Sympla",                             an:"Luana"},
+  {top:37, ass:"Provedor IPM",                       an:"Luana"},
+  {top:38, ass:"EAD Plataforma",                     an:"Calais"},
+  {top:39, ass:"WooCommerce",                        an:"Calais"},
+  {top:40, ass:"Plano Start",                        an:"Luana"},
+  {top:41, ass:"Digital Manager Guru",               an:"Calais"},
+  {top:42, ass:"Pagar.me",                           an:"Calais"},
+  {top:43, ass:"PagSeguro",                          an:"Calais"},
+  {top:44, ass:"Vindi",                              an:"Calais"},
+  {top:45, ass:"Kiwify",                             an:"Rapha"},
+  {top:46, ass:"Planos",                             an:"Rapha"},
+  {top:47, ass:"Provedor Ginfes",                    an:"Rapha"},
+  {top:48, ass:"Certificado Digital",                an:"Rapha"},
+  {top:49, ass:"Coprodução por Plataforma",          an:"Rapha"},
+  {top:50, ass:"Retenção de Impostos",               an:"Rapha"},
+];
+const TOTALS = {Brena:16, Alexandre:17, Luana:5, Rapha:6, Calais:null};
+
+// ═══════════════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════════════
+const S = {
+  analista  : '',   // sempre começa vazio — analista escolhe ao abrir
+  artigos   : [],
+  driveLinks: {},
+  formTipo  : 'externo', // 'externo' | 'interno' — controla o formulário aberto
+  forceNew  : false,     // true ao duplicar um tema já preenchido
+  quill     : null,
+  editId    : null,
+  lc        : 0,
+  lastSync  : null,
+};
+
+// ═══════════════════════════════════════════════════
+//  API GIST
+// ═══════════════════════════════════════════════════
+async function loadData() {
+  setStatus('spin', 'Sincronizando…');
+  loader(true);
+  try {
+    const r = await fetch(GIST_API(), { headers: GH_H() });
+    if (!r.ok) {
+      let errMsg = r.status;
+      try { const ej = await r.json(); errMsg = `${r.status}: ${ej.message}`; } catch(_){}
+      throw new Error(errMsg);
+    }
+    let d;
+    try {
+      d = await r.json();
+    } catch(e) {
+      throw new Error(`Falha ao parsear resposta da API: ${e.message}`);
+    }
+    // Se artigos-kb-enotas.json estiver truncado (>1MB), usa objeto vazio sem lançar erro
+    let meta = {};
+    if (!d.files[GIST_FILE]?.truncated) {
+      const rawMeta = d.files[GIST_FILE]?.content || '{}';
+      try {
+        meta = JSON.parse(rawMeta);
+      } catch(e) {
+        console.warn(`${GIST_FILE} parse falhou: ${e.message} — usando arquivos individuais.`);
+      }
+    }
+    S.driveLinks = meta.driveLinks || {};
+    // Combina artigos de ambas as fontes sem duplicar (ID como chave)
+    const byId = new Map();
+    // 1) Legado: artigos dentro do artigos-kb-enotas.json (só se não truncado)
+    if (!d.files[GIST_FILE]?.truncated) {
+      const legacyRaw = meta.artigos || {};
+      const legacyList = Array.isArray(legacyRaw) ? legacyRaw : Object.values(legacyRaw);
+      for (const a of legacyList) { if (a?.id) byId.set(a.id, a); }
+    }
+    // 2) Novo formato: um arquivo artigo-{id}.json por artigo (sobrescreve legado se mesmo ID)
+    const artigoFiles = Object.entries(d.files)
+      .filter(([n]) => n.startsWith('artigo-') && n.endsWith('.json'));
+    for (const [fname, fobj] of artigoFiles) {
+      try {
+        let content = fobj.content;
+        if (fobj.truncated && fobj.raw_url) {
+          const raw = await fetch(fobj.raw_url);
+          if (!raw.ok) throw new Error(`HTTP ${raw.status} ao buscar ${fname}`);
+          content = await raw.text();
+        }
+        const a = JSON.parse(content);
+        if (a?.id) byId.set(a.id, a);
+      } catch(e) {
+        throw new Error(`Falha ao parsear ${fname}: ${e.message}`);
+      }
+    }
+    S.artigos = [...byId.values()];
+    S.lastSync = new Date();
+    setStatus('ok', 'Gist conectado');
+    refreshAll();
+    updateInfoTab();
+    toast('Dados sincronizados!', 'ok');
+  } catch(e) {
+    setStatus('err', 'Erro de conexão');
+    toast(`Erro ao carregar: ${e.message}`, 'err');
+  }
+  loader(false);
+}
+
+// articleId → só atualiza aquele artigo. deletedId → remove o arquivo do gist.
+// Sem args → só atualiza driveLinks (para saveModalDrive).
+async function pushGist({ articleId = null, deletedId = null } = {}) {
+  loader(true);
+  try {
+    const files = {
+      [GIST_FILE]: { content: JSON.stringify({ driveLinks: S.driveLinks }, null, 2) }
+    };
+    if (deletedId) {
+      files[`artigo-${deletedId}.json`] = null;
+    } else if (articleId) {
+      const art = S.artigos.find(a => a.id === articleId);
+      if (art) files[`artigo-${art.id}.json`] = { content: JSON.stringify(art, null, 2) };
+    } else {
+      // Sync completo (primeiro uso / migração)
+      S.artigos.forEach(a => { files[`artigo-${a.id}.json`] = { content: JSON.stringify(a, null, 2) }; });
+    }
+    const r = await fetch(GIST_API(), {
+      method  : 'PATCH',
+      headers : GH_H(),
+      body    : JSON.stringify({ files }),
+    });
+    if (!r.ok) {
+      const e = await r.json();
+      throw new Error(`${r.status}: ${e.message}`);
+    }
+    S.lastSync = new Date();
+    loader(false);
+    return true;
+  } catch(e) {
+    loader(false);
+    toast(`Erro ao salvar: ${e.message}`, 'err');
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  ANALISTA
+// ═══════════════════════════════════════════════════
+function selectAnalyst(name) {
+  S.analista = name;
+  updateAnalystUI();
+  goTo('topics');
+}
+
+function updateAnalystUI() {
+  const box = document.getElementById('sAnalyst');
+  if (S.analista) {
+    box.className = 's-analyst';
+    box.innerHTML = `<span class="an-name">${S.analista}</span><span class="an-ch" onclick="goTo('home')">Trocar</span>`;
+    document.getElementById('tbsub').textContent = S.analista === 'Calais'
+      ? 'Base de Conhecimento · Calais — Temas Livres'
+      : `Base de Conhecimento · ${S.analista}`;
+  } else {
+    box.className = 's-analyst-empty';
+    box.textContent = 'Nenhum analista selecionado';
+    document.getElementById('tbsub').textContent = 'Base de Conhecimento';
+  }
+}
+
+function updateHomeCards() {
+  const saved = new Set(S.artigos.filter(a => (a.tipo||'externo') === 'externo').map(a => a.top));
+  ['Brena','Alexandre','Luana','Rapha'].forEach(n => {
+    const mine = TOP50.filter(t => t.an === n);
+    const done = mine.filter(t => saved.has(t.top)).length;
+    const el = document.getElementById(`prog-${n}`);
+    if (el) el.textContent = `${done} / ${TOTALS[n]} preenchidos`;
+    const card = document.getElementById(`ac-${n}`);
+    if (card) card.classList.toggle('sel', n === S.analista);
+  });
+  // Calais — conta artigos salvos com analista='Calais'
+  const calaisDone = S.artigos.filter(a => a.analista === 'Calais').length;
+  const elC = document.getElementById('prog-Calais');
+  if (elC) elC.textContent = `${calaisDone} preenchido(s)`;
+  const cardC = document.getElementById('ac-Calais');
+  if (cardC) cardC.classList.toggle('sel', S.analista === 'Calais');
+  const cardRapha = document.getElementById('ac-Rapha');
+  if (cardRapha) cardRapha.classList.toggle('sel', S.analista === 'Rapha');
+}
+
+// ═══════════════════════════════════════════════════
+//  FORMULÁRIO
+// ═══════════════════════════════════════════════════
+function populateSelect() {
+  const sel = document.getElementById('fAss');
+  sel.innerHTML = '<option value="">— Selecione um tópico —</option>';
+  // Artigos internos seguem a mesma regra de temas disponíveis dos externos
+  if (S.formTipo === 'interno' && S.analista !== 'Calais') {
+    const mine = TOP50.filter(t => t.an === S.analista);
+    mine.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t.top;
+      o.textContent = `#${String(t.top).padStart(2,'0')} — ${t.ass}`;
+      sel.appendChild(o);
+    });
+    return;
+  }
+  if (S.analista === 'Calais' && S.formTipo !== 'interno') {
+    const optNew = document.createElement('option');
+    optNew.value = 'custom';
+    optNew.textContent = '➕ Novo Tema (tema livre)';
+    sel.appendChild(optNew);
+    const optSep = document.createElement('option');
+    optSep.disabled = true;
+    optSep.textContent = '── TOP 50 disponíveis ──';
+    sel.appendChild(optSep);
+  }
+  const list = (!S.analista || S.analista === 'Calais') ? TOP50 : TOP50.filter(t => t.an === S.analista);
+  list.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t.top;
+    o.textContent = `#${String(t.top).padStart(2,'0')} — ${t.ass}`;
+    if (S.analista === 'Calais') o.textContent += ` (${t.an})`;
+    sel.appendChild(o);
+  });
+}
+
+function onAssChange() {
+  const v   = document.getElementById('fAss').value;
+  const wrap = document.getElementById('fCustomTopicWrap');
+  const tipoBadge = document.getElementById('fTipoBadge');
+  if (tipoBadge) {
+    tipoBadge.style.display = 'inline-flex';
+    tipoBadge.className = `tag ${S.formTipo === 'interno' ? 't-interno' : 't-externo'}`;
+    tipoBadge.textContent = S.formTipo === 'interno' ? '🗂️ Interno' : '🌐 Externo';
+  }
+  if (v === 'custom') {
+    // Calais — Novo Tema livre
+    document.getElementById('fBadge').textContent = '✦ Novo';
+    document.getElementById('fTitle').textContent  = 'Novo Tema';
+    wrap.style.display = 'block';
+    document.getElementById('fCustomTopic').focus();
+  } else {
+    wrap.style.display = 'none';
+    const t = TOP50.find(x => x.top == v);
+    document.getElementById('fBadge').textContent = t ? `#${String(t.top).padStart(2,'0')}` : '#—';
+    document.getElementById('fTitle').textContent  = t ? t.ass : 'Selecione um tópico';
+  }
+}
+
+function addLink(v = '') {
+  S.lc++;
+  const rid = `lr${S.lc}`, lid = `li${S.lc}`;
+  const d = document.createElement('div');
+  d.className = 'lr'; d.id = rid;
+  d.innerHTML = `<input class="fi" type="url" id="${lid}" value="${esc(v)}" placeholder="https://suporte.enotas.com.br/hc/pt-br/articles/…"/>
+    <button class="rm-btn" onclick="document.getElementById('${rid}').remove()" title="Remover">✕</button>`;
+  document.getElementById('linksList').appendChild(d);
+}
+
+function getLinks() {
+  return [...document.querySelectorAll('#linksList .fi')]
+    .map(i => i.value.trim()).filter(Boolean);
+}
+
+async function saveArticleInternal() {
+  const tv = document.getElementById('fAss').value;
+  const lk = document.getElementById('fLink').value.trim();
+  if (!tv) { toast('Selecione um assunto.', 'err'); return false; }
+  if (!lk) { toast('O link do artigo principal é obrigatório.', 'err'); return false; }
+
+  const tipo = S.formTipo === 'interno' ? 'interno' : 'externo';
+
+  let artTop, artAss, artAn;
+  if (tv === 'custom') {
+    const customName = document.getElementById('fCustomTopic').value.trim();
+    if (!customName) { toast('Digite o nome do novo tema.', 'err'); return false; }
+    artTop = null; artAss = customName; artAn = 'Calais';
+  } else {
+    const item = TOP50.find(t => t.top == tv);
+    artTop = item.top; artAss = item.ass; artAn = item.an;
+  }
+
+  const art = {
+    id              : S.editId || crypto.randomUUID(),
+    top             : artTop,
+    assunto         : artAss,
+    analista        : artAn,
+    tipo            : tipo,
+    titulo          : document.getElementById('fTitulo').value.trim(),
+    linkPrincipal   : lk,
+    linksUnificados : getLinks(),
+    conteudo        : S.quill.root.innerHTML,
+    // Preserva status existente; novo artigo começa em 'homologacao'
+    status          : S.editId
+      ? (S.artigos.find(a => a.id === S.editId)?.status || 'homologacao')
+      : 'homologacao',
+    dataSalvo       : new Date().toISOString(),
+  };
+
+  if (S.editId) {
+    S.artigos = S.artigos.map(a => a.id === S.editId ? art : a);
+  } else {
+    if (artTop !== null && tipo === 'externo' && !S.forceNew) {
+      const dup = S.artigos.find(a => a.top === artTop && (a.tipo||'externo') === 'externo');
+      if (dup) {
+        if (!confirm(`"${artAss}" já foi salvo. Deseja sobrescrever?`)) return false;
+        S.artigos = S.artigos.map(a => a.id === dup.id ? art : a);
+      } else { S.artigos.push(art); }
+    } else { S.artigos.push(art); }
+  }
+
+  const ok = await pushGist({ articleId: art.id });
+  if (ok) {
+    toast(`"${artAss}" salvo!`, 'ok');
+    cancelEdit();
+    refreshAll();
+    return true;
+  }
+  return false;
+}
+
+async function saveArticle() {
+  const tipoAtual = S.formTipo;
+  const ok = await saveArticleInternal();
+  if (ok) { clearForm(); goTo(tipoAtual === 'interno' ? 'internos' : 'topics'); }
+}
+
+function editArticle(id) {
+  const a = S.artigos.find(x => x.id === id);
+  if (!a) return;
+  S.editId = id;
+  S.formTipo = a.tipo || 'externo';
+  populateSelect();
+  // Custom topic (Calais Novo Tema) — top is null
+  if (a.top === null) {
+    document.getElementById('fAss').value = 'custom';
+    document.getElementById('fCustomTopic').value = a.assunto;
+  } else {
+    document.getElementById('fAss').value = a.top;
+  }
+  onAssChange();
+  document.getElementById('fLink').value   = a.linkPrincipal;
+  document.getElementById('fTitulo').value = a.titulo || '';
+  document.getElementById('linksList').innerHTML = '';
+  S.lc = 0;
+  (a.linksUnificados || []).forEach(l => addLink(l));
+  S.quill.root.innerHTML = a.conteudo || '';
+  document.getElementById('editLbl').style.display = 'flex';
+  document.getElementById('btnSave').textContent     = 'Atualizar';
+  document.getElementById('btnSaveNext').textContent = 'Atualizar e ir para o próximo';
+  goTo('form');
+}
+
+function cancelEdit() {
+  S.editId = null;
+  document.getElementById('editLbl').style.display     = 'none';
+  document.getElementById('btnSave').textContent       = 'Salvar Artigo';
+  document.getElementById('btnSaveNext').textContent   = 'Salvar e ir para o próximo';
+}
+
+function clearForm() {
+  document.getElementById('fAss').value         = '';
+  document.getElementById('fLink').value        = '';
+  document.getElementById('fTitulo').value      = '';
+  document.getElementById('fCustomTopic').value = '';
+  document.getElementById('fCustomTopicWrap').style.display = 'none';
+  document.getElementById('linksList').innerHTML = '';
+  S.lc = 0;
+  S.quill.setContents([]);
+  document.getElementById('fBadge').textContent = '#—';
+  document.getElementById('fTitle').textContent = 'Selecione um tópico';
+  document.getElementById('fTipoBadge').style.display = 'none';
+  S.forceNew = false;
+  cancelEdit();
+}
+
+function confirmClearForm() {
+  const tv  = document.getElementById('fAss').value;
+  const existing = S.editId
+    ? S.artigos.find(a => a.id === S.editId)
+    : (tv && tv !== 'custom' && !S.forceNew ? S.artigos.find(a => a.top == tv && (a.tipo||'externo') === S.formTipo) : null);
+
+  const msg = existing
+    ? `O artigo "<strong>${existing.assunto}</strong>" será removido permanentemente do banco de dados. Esta ação não pode ser desfeita.`
+    : 'Todos os dados preenchidos serão apagados. Esta ação não pode ser desfeita.';
+  document.getElementById('confirmClearMsg').innerHTML = msg;
+  document.getElementById('confirmClearModal').classList.add('open');
+}
+function closeConfirmClear(e) {
+  if (e && e.target !== document.getElementById('confirmClearModal')) return;
+  document.getElementById('confirmClearModal').classList.remove('open');
+}
+async function doConfirmClear() {
+  document.getElementById('confirmClearModal').classList.remove('open');
+
+  const tv  = document.getElementById('fAss').value;
+  const existing = S.editId
+    ? S.artigos.find(a => a.id === S.editId)
+    : (tv && tv !== 'custom' && !S.forceNew ? S.artigos.find(a => a.top == tv && (a.tipo||'externo') === S.formTipo) : null);
+
+  if (existing) {
+    S.artigos = S.artigos.filter(a => a.id !== existing.id);
+    const ok = await pushGist({ deletedId: existing.id });
+    if (ok) { toast(`"${existing.assunto}" removido.`, 'inf'); refreshAll(); }
+  }
+
+  clearForm();
+}
+
+function openNewForm() { clearForm(); S.formTipo = 'externo'; populateSelect(); goTo('form'); }
+
+function openNewInternalForm() { clearForm(); S.formTipo = 'interno'; populateSelect(); goTo('form'); }
+
+function openInternalTopic(top) {
+  clearForm();
+  S.formTipo = 'interno';
+  populateSelect();
+  document.getElementById('fAss').value = top;
+  onAssChange();
+  goTo('form');
+}
+
+function duplicateTopic(top) {
+  clearForm();
+  S.formTipo = 'externo';
+  S.forceNew = true;
+  populateSelect();
+  document.getElementById('fAss').value = top;
+  onAssChange();
+  goTo('form');
+}
+
+async function deleteArticle(id) {
+  if (!confirm('Excluir este artigo?')) return;
+  S.artigos = S.artigos.filter(a => a.id !== id);
+  const ok = await pushGist({ deletedId: id });
+  if (ok) { toast('Artigo excluído.', 'inf'); refreshAll(); }
+}
+
+// ═══════════════════════════════════════════════════
+//  TOPICS VIEW
+// ═══════════════════════════════════════════════════
+function renderTopics() {
+  if (!S.analista) return;
+  const isCalais = S.analista === 'Calais';
+  // Mostrar/ocultar botão Novo Tema
+  const btnNT = document.getElementById('btnNovoTema');
+  if (btnNT) btnNT.style.display = isCalais ? '' : 'none';
+
+  const mine = isCalais ? TOP50 : TOP50.filter(t => t.an === S.analista);
+  const externos = S.artigos.filter(a => (a.tipo||'externo') === 'externo');
+  const done = new Set(externos.map(a => a.top));
+  const dc   = mine.filter(t => done.has(t.top)).length;
+
+  // Para Calais: incluir também temas livres (top === null)
+  const customCalais = isCalais ? externos.filter(a => a.analista === 'Calais' && a.top === null) : [];
+  const totalDone = dc + customCalais.length;
+
+  document.getElementById('topicsH').textContent = isCalais
+    ? `Calais — Temas Livres (${totalDone} preenchido(s))`
+    : `${S.analista} — Artigos Externos (${dc} / ${mine.length})`;
+  document.getElementById('navBadge').textContent = isCalais ? totalDone : `${dc}/${mine.length}`;
+
+  const top50Cards = mine.map(t => {
+    const d = done.has(t.top);
+    return `<div class="tc ${d?'done':'pending'}">
+      <div class="tc-num" onclick="openTopic(${t.top})">#${t.top}</div>
+      <div class="tc-body" onclick="openTopic(${t.top})">
+        <div class="tc-name">${esc(t.ass)}${isCalais ? `<span style="font-size:10.5px;color:var(--muted);font-weight:400"> · ${t.an}</span>` : ''}</div>
+        <div class="tc-st">${d ? '✔ Preenchido' : '◦ Pendente'}</div>
+      </div>
+      ${d ? `<button class="btn btn-outline tc-dup" onclick="event.stopPropagation();duplicateTopic(${t.top})" title="Criar outro artigo unificado para este tema">⎘ Duplicar</button>` : ''}
+      <div class="tc-arr" onclick="openTopic(${t.top})">›</div>
+    </div>`;
+  }).join('');
+
+  // Artigos externos duplicados (mais de um por tema)
+  const dupCards = mine.flatMap(t => externos.filter(a => a.top === t.top).slice(1)).map(a => `
+    <div class="tc done" onclick="editArticle('${a.id}')">
+      <div class="tc-num">#${a.top}</div>
+      <div class="tc-body">
+        <div class="tc-name">${esc(a.assunto)} <span style="font-size:10.5px;color:var(--muted);font-weight:400">(duplicado)</span></div>
+        <div class="tc-st">✔ Preenchido</div>
+      </div>
+      <div class="tc-arr">›</div>
+    </div>`).join('');
+
+  const customCards = customCalais.map(a => `
+    <div class="tc done" onclick="editArticle('${a.id}')">
+      <div class="tc-num" style="background:#ecfeff;color:#0891b2">✦</div>
+      <div class="tc-body">
+        <div class="tc-name">${esc(a.assunto)}</div>
+        <div class="tc-st" style="color:#0891b2">✔ Tema livre preenchido</div>
+      </div>
+      <div class="tc-arr">›</div>
+    </div>`).join('');
+
+  document.getElementById('tgrid').innerHTML = top50Cards + dupCards + customCards;
+}
+
+// ═══════════════════════════════════════════════════
+//  ARTIGOS INTERNOS
+// ═══════════════════════════════════════════════════
+function renderInternos() {
+  if (!S.analista) return;
+  const isCalais = S.analista === 'Calais';
+  const mine = isCalais ? TOP50 : TOP50.filter(t => t.an === S.analista);
+  const internos = S.artigos.filter(a => a.tipo === 'interno' && mine.some(t => t.top === a.top));
+  document.getElementById('internosH').textContent = `Artigos Internos (${internos.length} preenchido(s))`;
+  document.getElementById('navBadgeInt').textContent = internos.length || '—';
+
+  document.getElementById('tgridInt').innerHTML = mine.map(t => {
+    const count = internos.filter(a => a.top === t.top).length;
+    return `<div class="tc ${count?'done':'pending'}" onclick="openInternalTopic(${t.top})">
+      <div class="tc-num">#${t.top}</div>
+      <div class="tc-body">
+        <div class="tc-name">${esc(t.ass)}${isCalais ? `<span style="font-size:10.5px;color:var(--muted);font-weight:400"> · ${t.an}</span>` : ''}</div>
+        <div class="tc-st">${count ? `✔ ${count} interno(s)` : '◦ Nenhum ainda'}</div>
+      </div>
+      <div class="tc-arr">›</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('internosList').innerHTML = internos.length ? internos.map(a => `
+    <div class="tc done" onclick="editArticle('${a.id}')">
+      <div class="tc-num" style="background:#fef3c7;color:#b45309">✦</div>
+      <div class="tc-body">
+        <div class="tc-name">${esc(a.assunto)} <span style="font-size:10.5px;color:var(--muted);font-weight:400">· por ${a.analista}</span></div>
+        <div class="tc-st" style="color:#b45309">✔ Artigo interno</div>
+      </div>
+      <div class="tc-arr">›</div>
+    </div>`).join('') : '<p style="font-size:12.5px;color:var(--muted)">Nenhum artigo interno criado ainda.</p>';
+}
+
+function openNovoTema() {
+  clearForm();
+  S.formTipo = 'externo';
+  populateSelect();
+  document.getElementById('fAss').value = 'custom';
+  onAssChange();
+  goTo('form');
+}
+
+function openTopic(top) {
+  const ex = S.artigos.find(a => a.top === top && (a.tipo||'externo') === 'externo');
+  if (ex) { editArticle(ex.id); return; }
+  clearForm();
+  S.formTipo = 'externo';
+  populateSelect();
+  document.getElementById('fAss').value = top;
+  onAssChange();
+  goTo('form');
+}
+
+// ═══════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════
+function renderDashboard() {
+  const b = S.artigos.filter(a => a.analista === 'Brena').length;
+  const a = S.artigos.filter(a => a.analista === 'Alexandre').length;
+  const l = S.artigos.filter(a => a.analista === 'Luana').length;
+  const c = S.artigos.filter(a => a.analista === 'Calais').length;
+  const rp = S.artigos.filter(a => a.analista === 'Rapha').length;
+  const tot     = S.artigos.length;
+  const pct     = Math.round(tot / 50 * 100);
+  const homolog = S.artigos.filter(a => !a.status || a.status === 'homologacao').length;
+  const prod    = S.artigos.filter(a => a.status === 'producao').length;
+
+  setText('kT', tot); setText('kB', b); setText('kA', a);
+  setText('kL', l); setText('kC', c); setText('kR', rp);
+  setText('kP', 50 - tot); setText('kPct', `${pct}% concluído`);
+  setText('kHomolog', homolog);
+  setText('kProd',    prod);
+  setBar('barB', b, 16, 'pctB');
+  setBar('barA', a, 17, 'pctA');
+  setBar('barL', l, 5,  'pctL');
+  setBar('barR', rp, 6, 'pctR');
+  document.getElementById('barC').style.width = c > 0 ? '100%' : '0%';
+  document.getElementById('pctC').textContent  = c > 0 ? c : '—';
+  document.getElementById('sumCards').innerHTML =
+    [{n:'Brena',d:b,t:16,c:'tp'},{n:'Alexandre',d:a,t:17,c:'tb2'},{n:'Luana',d:l,t:5,c:'te'},{n:'Rapha',d:rp,t:6,c:'to'},{n:'Calais',d:c,t:null,c:'ttl'}]
+    .map(r => `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;font-weight:600">${r.n}</span>
+      <span class="tag ${r.c}">${r.d}${r.t ? ` / ${r.t}` : ''} tópico(s)</span>
+    </div>`).join('')
+    + `<p style="padding-top:8px;font-size:12px;color:var(--muted)">${50-tot} tópico(s) ainda pendente(s)</p>`;
+  renderDashTable();
+}
+
+function renderDashTable() {
+  const fa   = document.getElementById('dashFilter').value;
+  const rows = [...S.artigos].filter(a => !fa || a.analista === fa).sort((a,b) => (a.top??999) - (b.top??999));
+  const tb   = document.getElementById('dashTb');
+  const em   = document.getElementById('dashEmpty');
+  if (!rows.length) { tb.innerHTML = ''; em.style.display = ''; return; }
+  em.style.display = 'none';
+  const at = n => n==='Brena'?'tp':n==='Alexandre'?'tb2':n==='Luana'?'te':n==='Rapha'?'to':'ttl';
+  tb.innerHTML = rows.map(a => {
+    const htmlSize = (a.conteudo || '').length;
+    const sizeWarn = htmlSize > 30000
+      ? `<span title="Conteúdo longo (${Math.round(htmlSize/1000)}k chars) — use Copiar HTML" style="color:var(--orange);font-size:11px;margin-left:4px">⚠️</span>`
+      : '';
+    return `<tr>
+    <td><span class="tag tgr">#${a.top ?? '✦'}</span></td>
+    <td style="font-weight:500">${esc(a.assunto)}${sizeWarn}</td>
+    <td><span class="tag ${at(a.analista)}">${a.analista}</span></td>
+    <td class="lnk">${a.linkPrincipal
+      ? `<a href="${esc(a.linkPrincipal)}" target="_blank">🔗 Ver artigo</a>`
+      : '<span style="color:var(--dim)">—</span>'}</td>
+    <td style="color:var(--muted)">${(a.linksUnificados||[]).length || '—'}</td>
+    <td class="lnk">${a.linkDrive
+      ? `<a href="${esc(a.linkDrive)}" target="_blank">📁 Drive</a>`
+      : '<span style="color:var(--dim)">—</span>'}</td>
+    <td style="color:var(--muted);white-space:nowrap">${a.dataSalvo
+      ? new Date(a.dataSalvo).toLocaleDateString('pt-BR') : '—'}</td>
+    <td style="display:flex;gap:5px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" title="Copiar HTML para área de transferência" onclick="copyArticleHtml('${a.id}')">Copiar HTML</button>
+      <button class="btn btn-outline btn-sm" onclick="editArticle('${a.id}')">✏️</button>
+      <button class="btn btn-danger  btn-sm" onclick="deleteArticle('${a.id}')">🗑</button>
+    </td>
+  </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  DRIVE LINKS
+// ═══════════════════════════════════════════════════
+function renderDriveList() {
+  const el = document.getElementById('driveList');
+  const em = document.getElementById('driveEmpty');
+  const rows = [...S.artigos].sort((a,b) => a.top - b.top);
+  if (!rows.length) { el.innerHTML = ''; em.style.display = ''; return; }
+  em.style.display = 'none';
+  const at = n => n==='Brena'?'tp':n==='Alexandre'?'tb2':n==='Luana'?'te':n==='Rapha'?'to':'ttl';
+  el.innerHTML = rows.map(a => `<div class="drive-row">
+    <span class="tag tgr" style="flex-shrink:0">#${a.top}</span>
+    <span style="min-width:150px;font-size:13px;font-weight:500;flex:1">${esc(a.assunto)}</span>
+    <span class="tag ${at(a.analista)}" style="flex-shrink:0">${a.analista}</span>
+    <input class="fi" type="url" id="drv-${a.id}" value="${esc(a.linkDrive||'')}"
+      placeholder="https://drive.google.com/drive/folders/…"/>
+    <button class="btn btn-primary btn-sm" onclick="saveDrive('${a.id}')">Salvar</button>
+  </div>`).join('');
+}
+
+async function saveDrive(id) {
+  const inp = document.getElementById(`drv-${id}`);
+  if (!inp) return;
+  S.artigos = S.artigos.map(a => a.id === id ? {...a, linkDrive: inp.value.trim()} : a);
+  const ok = await pushGist({ articleId: id });
+  if (ok) toast('Link do Drive salvo!', 'ok');
+}
+
+// ═══════════════════════════════════════════════════
+//  SALVAR E IR PARA O PRÓXIMO
+// ═══════════════════════════════════════════════════
+async function saveAndNext() {
+  const currentTop = parseInt(document.getElementById('fAss').value);
+  const tipoAtual  = S.formTipo;
+  const ok = await saveArticleInternal();
+  if (!ok) return;
+
+  if (tipoAtual === 'interno') { toast('Artigo interno salvo!', 'ok'); clearForm(); S.formTipo = 'interno'; goTo('internos'); return; }
+
+  // Encontra próximo tópico pendente do analista atual
+  if (!S.analista) { goTo('topics'); return; }
+  const mine = TOP50.filter(t => t.an === S.analista);
+  const done = new Set(S.artigos.filter(a => (a.tipo||'externo')==='externo').map(a => a.top));
+  const currentIdx = mine.findIndex(t => t.top === currentTop);
+
+  for (let i = currentIdx + 1; i < mine.length; i++) {
+    if (!done.has(mine[i].top)) {
+      toast(`Próximo tópico: ${mine[i].ass}`, 'inf');
+      clearForm();
+      populateSelect();
+      document.getElementById('fAss').value = mine[i].top;
+      onAssChange();
+      // scroll to top
+      document.querySelector('.content').scrollTo({top: 0, behavior: 'smooth'});
+      return;
+    }
+  }
+  // Todos preenchidos
+  toast('🎉 Todos os seus tópicos foram preenchidos!', 'ok');
+  goTo('topics');
+}
+
+// ═══════════════════════════════════════════════════
+//  DRIVE MODAL  (link único por analista)
+// ═══════════════════════════════════════════════════
+function openDriveModal() {
+  document.getElementById('mDriveInput').value = S.driveLinks[S.analista] || '';
+  document.getElementById('driveModal').classList.add('open');
+  setTimeout(() => document.getElementById('mDriveInput').focus(), 150);
+}
+
+function closeDriveModal(event) {
+  if (event && event.target !== document.getElementById('driveModal')) return;
+  document.getElementById('driveModal').classList.remove('open');
+}
+
+async function saveModalDrive() {
+  const link = document.getElementById('mDriveInput').value.trim();
+  if (!S.analista) { toast('Selecione um analista antes de salvar.', 'inf'); return; }
+  S.driveLinks = { ...S.driveLinks, [S.analista]: link };
+  const ok = await pushGist();
+  if (ok) {
+    toast('Link do Drive salvo!', 'ok');
+    document.getElementById('driveModal').classList.remove('open');
+    const btn = document.getElementById('btnDrive');
+    if (btn) btn.style.borderColor = link ? 'var(--green)' : '';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  INFO TAB
+// ═══════════════════════════════════════════════════
+function renderTop50Table() {
+  const saved = new Set(S.artigos.map(a => a.top));
+  const at = n => n==='Brena'?'tp':n==='Alexandre'?'tb2':n==='Luana'?'te':n==='Rapha'?'to':'ttl';
+  document.getElementById('top50Body').innerHTML = TOP50.map(t => `<tr>
+    <td><span class="tag tgr">#${t.top}</span></td>
+    <td style="font-weight:500">${esc(t.ass)}</td>
+    <td><span class="tag ${at(t.an)}">${t.an}</span></td>
+    <td>${saved.has(t.top)
+      ? '<span class="tag tg">✔ Preenchido</span>'
+      : '<span class="tag tgr">◦ Pendente</span>'}</td>
+  </tr>`).join('');
+}
+
+function updateInfoTab() {
+  const n = document.getElementById('connNotice');
+  const dot = document.getElementById('sdot');
+  if (dot.classList.contains('ok')) {
+    n.className = 'notice n-ok';
+    n.textContent = '✅ Conexão com o Gist estabelecida. Dados carregados com sucesso.';
+  } else {
+    n.className = 'notice n-err';
+    n.textContent = '❌ Sem conexão com o Gist. Verifique sua internet e clique em Sincronizar.';
+  }
+  // Gist ID permanece oculto (pontos)
+  setText('infoCount', `${S.artigos.length} artigos`);
+  setText('infoSync',  S.lastSync ? S.lastSync.toLocaleString('pt-BR') : '—');
+}
+
+// ═══════════════════════════════════════════════════
+//  PRODUÇÃO
+// ═══════════════════════════════════════════════════
+function renderProducao() {
+  const homolog  = S.artigos.filter(a => !a.status || a.status === 'homologacao').sort((a,b) => (a.top??999)-(b.top??999));
+  const producao = S.artigos.filter(a => a.status === 'producao').sort((a,b) => (a.top??999)-(b.top??999));
+
+  setText('prodHomBadge',  `${homolog.length} em Homologação`);
+  setText('prodProdBadge', `${producao.length} em Produção`);
+  setText('navBadgeProd',  homolog.length || '—');
+
+  const at = n => n==='Brena'?'tp':n==='Alexandre'?'tb2':n==='Luana'?'te':n==='Rapha'?'to':'ttl';
+
+  // Coluna Homologação — botão "Feito" greyed out
+  document.getElementById('homologList').innerHTML = homolog.length
+    ? homolog.map(a => `
+      <div class="prod-card">
+        <div class="prod-card-head">
+          <span class="tag tgr" style="flex-shrink:0">#${a.top ?? '✦'}</span>
+          <span style="font-weight:600;flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.assunto)}</span>
+          <span class="tag ${at(a.analista)}" style="flex-shrink:0">${a.analista}</span>
+          <button style="flex-shrink:0;padding:4px 12px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s"
+            onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'"
+            onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'"
+            onclick="markProducao('${a.id}')">Feito</button>
+        </div>
+        ${a.linkPrincipal ? `<a class="prod-card-link" href="${esc(a.linkPrincipal)}" target="_blank" title="${esc(a.linkPrincipal)}">🔗 ${esc(a.linkPrincipal)}</a>` : ''}
+      </div>`).join('')
+    : '<div class="empty-state" style="padding:24px 0"><p>Nenhum artigo em homologação.</p></div>';
+
+  // Coluna Produção — badge "✓ Feito" verde + botão reverter
+  document.getElementById('producaoList').innerHTML = producao.length
+    ? producao.map(a => `
+      <div class="prod-card" style="border-left:3px solid var(--green)">
+        <div class="prod-card-head">
+          <span class="tag tgr" style="flex-shrink:0">#${a.top ?? '✦'}</span>
+          <span style="font-weight:600;flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.assunto)}</span>
+          <span class="tag ${at(a.analista)}" style="flex-shrink:0">${a.analista}</span>
+          <span class="tag t-prod" style="flex-shrink:0">✓ Feito</span>
+          <button style="flex-shrink:0;padding:4px 10px;border:1px solid #fca5a5;border-radius:var(--rs);background:var(--white);color:var(--red);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s"
+            onmouseover="this.style.background='var(--rl)'"
+            onmouseout="this.style.background='var(--white)'"
+            onclick="revertHomolog('${a.id}')" title="Reverter para Homologação">↩ Reverter</button>
+        </div>
+        ${a.linkPrincipal ? `<a class="prod-card-link" href="${esc(a.linkPrincipal)}" target="_blank" title="${esc(a.linkPrincipal)}">🔗 ${esc(a.linkPrincipal)}</a>` : ''}
+      </div>`).join('')
+    : '<div class="empty-state" style="padding:24px 0"><p>Nenhum artigo em produção ainda.</p></div>';
+}
+
+async function markProducao(id) {
+  S.artigos = S.artigos.map(a => a.id === id ? {...a, status: 'producao'} : a);
+  const ok = await pushGist({ articleId: id });
+  if (ok) { toast('Artigo marcado como Produção! 🚀', 'ok'); refreshAll(); }
+}
+
+async function revertHomolog(id) {
+  S.artigos = S.artigos.map(a => a.id === id ? {...a, status: 'homologacao'} : a);
+  const ok = await pushGist({ articleId: id });
+  if (ok) { toast('Artigo revertido para Homologação.', 'inf'); refreshAll(); }
+}
+
+async function refreshAndOpenDash() {
+  await loadData();
+  window.open('https://rafaelcalaispenido.github.io/acompanhamento-artigos/', '_blank');
+}
+
+// Copia o HTML do editor atual (processado) para a área de transferência
+async function copyEditorHtml() {
+  try {
+    const html = processContent(S.quill.root.innerHTML);
+    await navigator.clipboard.writeText(html);
+    toast('HTML copiado! Cole diretamente no Zendesk.', 'ok');
+  } catch(e) {
+    toast('Não foi possível copiar automaticamente.', 'err');
+  }
+}
+
+// Copia o HTML processado (wysiwyg + caixa real) para a área de transferência
+async function copyArticleHtml(id) {
+  const a = S.artigos.find(x => x.id === id);
+  if (!a) return;
+  try {
+    const html = processContent(a.conteudo || '');
+    await navigator.clipboard.writeText(html);
+    toast('HTML copiado! Cole diretamente no Zendesk.', 'ok');
+  } catch(e) {
+    toast('Não foi possível copiar automaticamente. Tente pelo XLSX.', 'err');
+  }
+}
+
+const EXCEL_LIMIT = 32000; // limite seguro (Excel trunca acima de 32.767)
+
+function downloadXLSX() {
+  if (!S.artigos.length) { toast('Nenhum artigo para exportar.', 'inf'); return; }
+
+  let truncated = 0;
+
+  const COL_DEFS = [{wch:5},{wch:32},{wch:12},{wch:40},{wch:60},{wch:60},{wch:80},{wch:20}];
+  const toRow = a => {
+    let html = processContent(a.conteudo || '');
+    if (html.length > EXCEL_LIMIT) {
+      truncated++;
+      html = html.slice(0, EXCEL_LIMIT) + '\n\n⚠️ [CONTEÚDO TRUNCADO — use o botão "Copiar HTML" no Dashboard para obter o HTML completo]';
+    }
+    return {
+      'TOP'                     : a.top ?? '—',
+      'Assunto'                 : a.assunto,
+      'Analista'                : a.analista,
+      'Título do Artigo'        : a.titulo || '',
+      'Link do Artigo Principal': a.linkPrincipal || '',
+      'Links Unificados'        : (a.linksUnificados || []).join('\n'),
+      'Conteúdo (HTML)'         : html,
+      'Data de Salvamento'      : a.dataSalvo ? new Date(a.dataSalvo).toLocaleString('pt-BR') : '',
+    };
+  };
+
+  const wb = XLSX.utils.book_new();
+
+  // Aba 1 — Artigos (Brena, Alexandre, Luana)
+  const mainRows = [...S.artigos]
+    .filter(a => a.analista !== 'Calais')
+    .sort((a,b) => (a.top ?? 999) - (b.top ?? 999))
+    .map(toRow);
+  const ws1 = XLSX.utils.json_to_sheet(mainRows.length ? mainRows : [{}]);
+  ws1['!cols'] = COL_DEFS;
+  XLSX.utils.book_append_sheet(wb, ws1, 'Artigos');
+
+  // Aba 2 — Calais (Temas Livres)
+  const calaisRows = [...S.artigos]
+    .filter(a => a.analista === 'Calais')
+    .sort((a,b) => (a.dataSalvo || '').localeCompare(b.dataSalvo || ''))
+    .map(toRow);
+  const ws4 = XLSX.utils.json_to_sheet(calaisRows.length ? calaisRows : [{}]);
+  ws4['!cols'] = COL_DEFS;
+  XLSX.utils.book_append_sheet(wb, ws4, 'Calais — Temas Livres');
+
+  // Aba 3 — TOP 50 Distribuição
+  const dist = TOP50.map(t => {
+    const s = S.artigos.find(a => a.top === t.top);
+    return { TOP: t.top, Assunto: t.ass, Analista: t.an, Status: s ? 'Preenchido' : 'Pendente' };
+  });
+  const ws2 = XLSX.utils.json_to_sheet(dist);
+  ws2['!cols'] = [{wch:5},{wch:36},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'TOP 50 Distribuição');
+
+  // Aba 4 — Link Drive
+  const driveRows = ['Brena','Alexandre','Luana','Calais'].map(an => ({
+    'Analista'      : an,
+    'Link do Drive' : S.driveLinks[an] || '—',
+  }));
+  const ws3 = XLSX.utils.json_to_sheet(driveRows);
+  ws3['!cols'] = [{wch:16},{wch:80}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Link Drive');
+
+  XLSX.writeFile(wb, `KB_eNotas_${new Date().toISOString().slice(0,10)}.xlsx`);
+  if (truncated > 0) {
+    toast(`Planilha exportada. ⚠️ ${truncated} artigo(s) com conteúdo truncado — use "Copiar HTML" no Dashboard para o HTML completo.`, 'inf');
+  } else {
+    toast('Planilha exportada!', 'ok');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  NAVEGAÇÃO
+// ═══════════════════════════════════════════════════
+function goTo(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const vEl = document.getElementById(`view-${view}`);
+  const nEl = document.getElementById(`nav-${view}`);
+  if (vEl) vEl.classList.add('active');
+  if (nEl) nEl.classList.add('active');
+
+  if (view === 'topics')     { S.formTipo = 'externo'; populateSelect(); renderTopics(); }
+  if (view === 'internos')   { S.formTipo = 'interno'; populateSelect(); renderInternos(); }
+  if (view === 'dashboard')  { renderDashboard(); }
+  if (view === 'producao')   { renderProducao(); }
+  if (view === 'images')     { renderDriveList(); }
+  if (view === 'info')       { renderTop50Table(); updateInfoTab(); }
+  if (view === 'home')       { updateHomeCards(); }
+  // 'form' não chama populateSelect() aqui pois os chamadores (openTopic, openNewForm, editArticle)
+  // já fazem isso antes de setar o valor selecionado.
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILITÁRIOS
+// ═══════════════════════════════════════════════════
+function refreshAll() {
+  updateAnalystUI();
+  updateHomeCards();
+  renderTopics();
+  renderInternos();
+  renderDashboard();
+  renderProducao();
+  renderDriveList();
+  renderTop50Table();
+  updateInfoTab();
+}
+function setStatus(type, txt) {
+  document.getElementById('sdot').className = `sdot ${type}`;
+  document.getElementById('stxt').textContent = txt;
+}
+function setText(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
+function setBar(bid, v, t, pid) {
+  const p = Math.round(v / t * 100);
+  document.getElementById(bid).style.width = p + '%';
+  document.getElementById(pid).textContent = p + '%';
+}
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function loader(on) { document.getElementById('loader').classList.toggle('on', on); }
+function toast(msg, type = 'ok') {
+  const d = document.createElement('div');
+  d.className = `toast ${type}`;
+  d.innerHTML = `${type==='ok'?'✅':type==='err'?'❌':'ℹ️'} ${msg}`;
+  document.getElementById('toast-area').appendChild(d);
+  setTimeout(() => d.remove(), 4500);
+}
+
+// ═══════════════════════════════════════════════════
+//  CAIXA EXPANSIVA
+// ═══════════════════════════════════════════════════
+let _caixaRowCount   = 0;
+let _caixaEditors    = {};    // { n: QuillInstance }
+let _editingBlockIdx = -1;    // índice Quill do bloco em edição (-1 = novo)
+
+function openCaixaModal(prefillRows) {
+  _caixaRowCount = 0;
+  _caixaEditors  = {};
+  document.getElementById('faqRows').innerHTML = '';
+
+  const isEdit = Array.isArray(prefillRows) && prefillRows.length > 0;
+  document.getElementById('faqModalTitle').textContent  = isEdit ? 'Editar Caixa Expansiva' : 'Inserir Caixa Expansiva';
+  document.getElementById('btnInsertCaixa').textContent = isEdit ? 'Atualizar' : 'Inserir no artigo';
+
+  if (isEdit) {
+    prefillRows.forEach(r => addCaixaRow(r.title || '', r.content || ''));
+  } else {
+    _editingBlockIdx = -1;
+    addCaixaRow();
+  }
+  document.getElementById('faqModal').classList.add('open');
+}
+
+function closeCaixaModal(event) {
+  if (event && event.target !== document.getElementById('faqModal')) return;
+  // Limpa instâncias mini-Quill (evita memory leak)
+  _caixaEditors = {};
+  _editingBlockIdx = -1;
+  document.getElementById('faqModal').classList.remove('open');
+}
+
+function addCaixaRow(title = '', content = '') {
+  _caixaRowCount++;
+  const n = _caixaRowCount;
+  const div = document.createElement('div');
+  div.className = 'faq-row-item';
+  div.id = `faqRow${n}`;
+  div.innerHTML = `
+    <div class="faq-row-fields">
+      <div class="faq-row-num">Linha ${n}</div>
+      <input class="fi" type="text" id="faqT${n}" value="${esc(title)}" placeholder="Título — ex: O que é NF-e?" />
+      <div class="faq-mini-editor" id="faqCE${n}"></div>
+    </div>
+    ${n > 1 ? `<button class="rm-btn" style="margin-top:4px" onclick="removeCaixaRow(${n})" title="Remover linha">✕</button>` : ''}
+  `;
+  document.getElementById('faqRows').appendChild(div);
+
+  // Inicializa mini Quill para o conteúdo
+  const qi = new Quill(`#faqCE${n}`, {
+    theme: 'snow',
+    placeholder: 'Conteúdo que aparece ao expandir…',
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link', 'clean'],
+      ]
+    }
+  });
+  if (content) qi.root.innerHTML = content;
+  _caixaEditors[n] = qi;
+
+  document.getElementById(`faqT${n}`).focus();
+}
+
+function removeCaixaRow(n) {
+  document.getElementById(`faqRow${n}`)?.remove();
+  delete _caixaEditors[n];
+}
+
+function insertCaixaHtml() {
+  const rows = [...document.querySelectorAll('#faqRows .faq-row-item')].map(row => {
+    const n = row.id.replace('faqRow','');
+    return {
+      title  : document.getElementById(`faqT${n}`)?.value.trim() || 'TÍTULO',
+      content: _caixaEditors[n] ? _caixaEditors[n].root.innerHTML : '<p><br></p>',
+    };
+  }).filter(r => r.title);
+
+  if (!rows.length) { toast('Adicione pelo menos uma linha com título.', 'err'); return; }
+
+  if (_editingBlockIdx >= 0) {
+    // Substitui o bloco existente
+    S.quill.deleteText(_editingBlockIdx, 1, 'user');
+    S.quill.insertEmbed(_editingBlockIdx, 'caixa-expansiva', rows, 'user');
+    S.quill.setSelection(_editingBlockIdx + 1, 0);
+    toast('Caixa atualizada!', 'ok');
+  } else {
+    const range = S.quill.getSelection(true) || { index: S.quill.getLength(), length: 0 };
+    S.quill.insertEmbed(range.index, 'caixa-expansiva', rows, 'user');
+    S.quill.setSelection(range.index + 1, 0);
+    toast('Caixa expansiva inserida!', 'ok');
+  }
+
+  closeCaixaModal();
+}
+
+// Abre modal para editar um bloco existente
+function editCaixaBlock(event, blockId) {
+  event.stopPropagation();
+  const block = document.getElementById(blockId);
+  if (!block) return;
+  try {
+    const rows = JSON.parse(block.getAttribute('data-rows') || '[]');
+    const blot = Quill.find(block, true);
+    _editingBlockIdx = blot ? S.quill.getIndex(blot) : -1;
+    openCaixaModal(rows);
+  } catch(e) { toast('Erro ao abrir editor da caixa.', 'err'); }
+}
+
+// Gera o HTML puro para Zendesk (sem botões de editar)
+function buildCaixaExportHtml(rows) {
+  const trs = rows.map(r => {
+    const tit = String(r.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const con = r.content || '';
+    return `<tr><td style="border-bottom: 1px solid #ccc;"><details><summary style="padding: 14px; display: block; cursor: pointer; list-style: none;"><strong><span style="color: #fe734f;">❯ </span>${tit}</strong></summary><div style="padding: 8px 18px 18px;">${con}</div></details></td></tr>`;
+  }).join('');
+  return `<table style="width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #ccc; border-radius: 10px; overflow: hidden;"><tbody>${trs}</tbody></table>`;
+}
+
+// Adiciona botões "editar" a cada linha de um bloco no editor
+function addEditBtnsToBlock(node, blockId) {
+  node.querySelectorAll('summary').forEach(sum => {
+    sum.querySelectorAll('.kb-edit-btn').forEach(b => b.remove());
+    sum.style.display  = 'flex';
+    sum.style.alignItems = 'center';
+    sum.style.justifyContent = 'space-between';
+    const btn = document.createElement('button');
+    btn.className = 'kb-edit-btn';
+    btn.type = 'button';
+    btn.textContent = 'editar';
+    btn.setAttribute('onclick', `editCaixaBlock(event,'${blockId}')`);
+    sum.appendChild(btn);
+  });
+}
+
+// Adiciona class="wysiwyg-font-size-large" a todos os <p> e <li> do HTML
+// para compatibilidade com o padrão Zendesk/Hotmart.
+function addWysiwygClass(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  tmp.querySelectorAll('p, li').forEach(el => {
+    const cls = el.getAttribute('class') || '';
+    if (!cls.includes('wysiwyg-font-size-large')) {
+      el.setAttribute('class', (cls ? cls + ' ' : '') + 'wysiwyg-font-size-large');
+    }
+  });
+  return tmp.innerHTML;
+}
+
+// Para exportação XLSX: remove wrapper e botões, aplica classe wysiwyg, retorna HTML puro.
+function processContent(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  // Converte caixas expansivas
+  tmp.querySelectorAll('.ql-caixa-expansiva').forEach(el => {
+    try {
+      const rows = JSON.parse(el.getAttribute('data-rows') || '[]');
+      el.outerHTML = buildCaixaExportHtml(rows);
+    } catch { el.outerHTML = el.innerHTML; }
+  });
+  // Converte blocos de aviso
+  tmp.querySelectorAll('.ql-aviso').forEach(el => {
+    try {
+      const text = el.getAttribute('data-text') || '';
+      el.outerHTML = buildAvisoExportHtml(text);
+    } catch { el.outerHTML = el.innerHTML; }
+  });
+  return addWysiwygClass(tmp.innerHTML);
+}
+
+// ═══════════════════════════════════════════════════
+//  AVISO (CALLOUT IMPORTANTE)
+// ═══════════════════════════════════════════════════
+let _editingAvisoIdx = -1;
+
+function buildAvisoExportHtml(text) {
+  const safe = String(text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<table style="border-collapse: separate; border-spacing: 0; width: 100%; border: 1px solid #333; border-radius: 4px; background-color: #fff;"><tbody><tr><td style="padding: 10px 14px;"><p class="wysiwyg-font-size-large">⚠️ <strong>IMPORTANTE!</strong> ${safe}</p></td></tr></tbody></table>`;
+}
+
+function openAvisoModal(prefillText) {
+  const ta  = document.getElementById('avisoText');
+  const btn = document.getElementById('btnInsertAviso');
+  ta.value = prefillText || '';
+  syncAvisoPreview();
+  btn.textContent = prefillText ? 'Atualizar' : 'Inserir no artigo';
+  document.getElementById('avisoModal').classList.add('open');
+  ta.focus();
+}
+
+function closeAvisoModal(event) {
+  if (event && event.target !== document.getElementById('avisoModal')) return;
+  _editingAvisoIdx = -1;
+  document.getElementById('avisoModal').classList.remove('open');
+}
+
+function syncAvisoPreview() {
+  const txt = document.getElementById('avisoText').value.trim();
+  const el  = document.getElementById('avisoPreviewText');
+  el.textContent = txt || 'Prévia do aviso…';
+  el.style.color = txt ? '#1e1e1e' : '#9ca3af';
+}
+
+function insertAviso() {
+  const text = document.getElementById('avisoText').value.trim();
+  if (!text) { toast('Escreva o texto do aviso antes de inserir.', 'err'); return; }
+  if (_editingAvisoIdx >= 0) {
+    S.quill.deleteText(_editingAvisoIdx, 1, 'user');
+    S.quill.insertEmbed(_editingAvisoIdx, 'aviso', text, 'user');
+    S.quill.setSelection(_editingAvisoIdx + 1, 0);
+    toast('Aviso atualizado!', 'ok');
+  } else {
+    const range = S.quill.getSelection(true) || { index: S.quill.getLength(), length: 0 };
+    S.quill.insertEmbed(range.index, 'aviso', text, 'user');
+    S.quill.setSelection(range.index + 1, 0);
+    toast('Aviso inserido!', 'ok');
+  }
+  closeAvisoModal();
+}
+
+function editAvisoBlock(event, blockId) {
+  event.stopPropagation();
+  const block = document.getElementById(blockId);
+  if (!block) return;
+  const text = block.getAttribute('data-text') || '';
+  const blot = Quill.find(block, true);
+  _editingAvisoIdx = blot ? S.quill.getIndex(blot) : -1;
+  openAvisoModal(text);
+}
+
+// ── Colar HTML — modal ──
+function openColarHtmlModal() {
+  document.getElementById('colarHtmlArea').value = '';
+  document.getElementById('colarHtmlModal').classList.add('open');
+  setTimeout(() => document.getElementById('colarHtmlArea').focus(), 80);
+}
+
+function closeColarHtmlModal(event) {
+  if (event && event.target !== document.getElementById('colarHtmlModal')) return;
+  document.getElementById('colarHtmlModal').classList.remove('open');
+}
+
+function loadHtmlFromModal() {
+  const html = document.getElementById('colarHtmlArea').value.trim();
+  if (!html) { toast('Cole um HTML antes de carregar.', 'err'); return; }
+  S.quill.root.innerHTML = '';
+  S.quill.clipboard.dangerouslyPasteHTML(0, html);
+  closeColarHtmlModal();
+  toast('HTML carregado no editor!', 'ok');
+}
+
+// ═══════════════════════════════════════════════════
+//  INICIALIZAÇÃO
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  const img = document.getElementById('logoImg');
+  if (img) {
+    img.onerror = () => {
+      img.style.display = 'none';
+      document.getElementById('logoFb').style.display = 'flex';
+    };
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  // ── BlockEmbed importado uma vez — usado por AvisoBlot e CaixaExpansivaBlot ──
+  const BlockEmbed = Quill.import('blots/block/embed');
+
+  // ── Registra AvisoBlot (callout IMPORTANTE) ──
+  class AvisoBlot extends BlockEmbed {
+    static create(value) {
+      const node = super.create();
+      const blockId = `kb-av-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
+      node.id = blockId;
+      node.setAttribute('data-text', value);
+      node.setAttribute('contenteditable', 'false');
+      const safe = String(value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      node.innerHTML = `<table style="border-collapse:separate;border-spacing:0;width:100%;border:1px solid #333;border-radius:4px;background-color:#fff"><tbody><tr><td style="padding:10px 14px">⚠️ <strong>IMPORTANTE!</strong> ${safe}</td></tr></tbody></table>`;
+      setTimeout(() => {
+        const td = node.querySelector('td');
+        if (td) {
+          const btn = document.createElement('button');
+          btn.className = 'aviso-edit-btn';
+          btn.type = 'button';
+          btn.textContent = 'editar';
+          btn.setAttribute('onclick', `editAvisoBlock(event,'${blockId}')`);
+          td.insertBefore(btn, td.firstChild);
+        }
+      }, 0);
+      return node;
+    }
+    static value(node) { return node.getAttribute('data-text') || ''; }
+  }
+  AvisoBlot.blotName  = 'aviso';
+  AvisoBlot.tagName   = 'div';
+  AvisoBlot.className = 'ql-aviso';
+  Quill.register(AvisoBlot);
+
+  // ── Registra CaixaExpansivaBlot ──
+  class CaixaExpansivaBlot extends BlockEmbed {
+    static create(value) {
+      const node = super.create();
+      const blockId = `kb-cx-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
+      node.id = blockId;
+      node.setAttribute('data-block-id', blockId);
+      node.setAttribute('data-rows', JSON.stringify(value));
+      node.setAttribute('contenteditable', 'false');
+      node.innerHTML = buildCaixaExportHtml(value);
+      // Adiciona botões "editar" após o browser renderizar o DOM
+      setTimeout(() => addEditBtnsToBlock(node, blockId), 0);
+      return node;
+    }
+    static value(node) {
+      try { return JSON.parse(node.getAttribute('data-rows') || '[]'); }
+      catch { return []; }
+    }
+  }
+  CaixaExpansivaBlot.blotName   = 'caixa-expansiva';
+  CaixaExpansivaBlot.tagName    = 'div';
+  CaixaExpansivaBlot.className  = 'ql-caixa-expansiva';
+  Quill.register(CaixaExpansivaBlot);
+
+  // Quill editor
+  S.quill = new Quill('#quillEditor', {
+    theme: 'snow',
+    placeholder: 'Escreva o conteúdo do artigo...\n\nUse [inserir img-1], [inserir img-2]… para indicar onde as imagens aparecem.',
+    modules: {
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ color: [] }, { background: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ indent: '-1' }, { indent: '+1' }],
+        ['link', 'blockquote', 'code-block'],
+        ['clean'],
+      ],
+    },
+  });
+
+  // Barra customizada abaixo do toolbar nativo — evita sobreposição
+  const qlToolbar = S.quill.getModule('toolbar').container;
+  const customBar = document.createElement('div');
+  customBar.className = 'ql-custom-bar';
+  customBar.innerHTML = `
+    <button class="ql-faq-btn" onclick="openCaixaModal()" title="Inserir caixa expansiva" type="button">Caixa expansiva</button>
+    <button class="ql-faq-btn" onclick="openAvisoModal()" title="Inserir aviso IMPORTANTE" type="button" style="border-color:#888;color:#444">⚠️ Aviso</button>
+    <button class="ql-faq-btn" onclick="copyEditorHtml()" title="Copiar HTML para área de transferência" type="button" style="border-color:#7b3fc5;color:#7b3fc5">📋 HTML</button>
+    <button class="ql-faq-btn" onclick="openColarHtmlModal()" title="Colar HTML no editor" type="button" style="border-color:#7b3fc5;color:#7b3fc5">📥 Colar HTML</button>
+  `;
+  qlToolbar.parentNode.insertBefore(customBar, qlToolbar.nextSibling);
+
+  // Fechar modais com ESC
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.getElementById('driveModal').classList.remove('open');
+      document.getElementById('faqModal').classList.remove('open');
+      document.getElementById('avisoModal').classList.remove('open');
+      document.getElementById('colarHtmlModal').classList.remove('open');
+    }
+  });
+
+  // Limpa analista salvo de sessões anteriores — cada abertura começa na tela inicial
+  localStorage.removeItem('analista');
+
+  // Carregar dados automaticamente
+  loadData();
+});
+</script>
+</body>
+</html>
