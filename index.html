@@ -1479,6 +1479,7 @@ function renderTopics() {
         <div class="tc-name">${esc(t.ass)}${isCalais ? `<span style="font-size:10.5px;color:var(--muted);font-weight:400"> · ${t.an}</span>` : ''}</div>
         <div class="tc-st">${stLabel}</div>
       </div>
+      <button class="btn btn-outline tc-dup" onclick="event.stopPropagation();renameTopic(${t.top})" title="Editar nome do tema">✏️</button>
       ${d ? `<button class="btn btn-outline tc-dup" onclick="event.stopPropagation();duplicateTopic(${t.top})" title="Criar outro artigo unificado para este tema">⎘ Duplicar</button>` : ''}
       <div class="tc-arr" onclick="openTopic(${t.top})">›</div>
     </div>`;
@@ -1572,6 +1573,18 @@ function openNovoTema() {
   document.getElementById('fAss').value = 'custom';
   onAssChange();
   goTo('form');
+}
+
+async function renameTopic(top) {
+  const t = TOP50.find(t => t.top === top);
+  if (!t) return;
+  const novo = window.prompt(`Novo nome para o tema #${top}:`, t.ass);
+  if (!novo || novo.trim() === t.ass) return;
+  t.ass = novo.trim();
+  // Se houver artigo salvo, atualiza também o assunto dele
+  const art = S.artigos.find(a => a.top === top && (a.tipo||'externo') === 'externo');
+  if (art) { art.assunto = t.ass; await pushGist({ articleId: art.id }).catch(() => {}); }
+  renderTopics();
 }
 
 function openTopic(top) {
