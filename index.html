@@ -915,19 +915,18 @@ async function loadData() {
     } catch(e) {
       throw new Error(`Falha ao parsear resposta da API: ${e.message}`);
     }
-    // Carrega artigos-kb-enotas.json; se truncado pela API busca via raw_url
+    // Carrega artigos-kb-enotas.json (gist.githubusercontent.com é bloqueado por CORS, então
+    // topicNames usa localStorage como fonte primária e gist como backup de sincronização)
     let meta = {};
     const _gf = d.files[GIST_FILE];
-    if (_gf) {
-      try {
-        let _raw = (!_gf.truncated && _gf.content) ? _gf.content : null;
-        if (!_raw && _gf.raw_url) { const _r = await fetch(_gf.raw_url, { headers: GH_H() }); if (_r.ok) _raw = await _r.text(); }
-        if (_raw) meta = JSON.parse(_raw);
-      } catch(e) { console.warn(`${GIST_FILE} parse falhou: ${e.message}`); }
+    if (_gf && !_gf.truncated && _gf.content) {
+      try { meta = JSON.parse(_gf.content); } catch(e) { console.warn(`${GIST_FILE} parse falhou: ${e.message}`); }
     }
     S.driveLinks = meta.driveLinks || {};
-    S.topicNames = meta.topicNames || {};
-    // Reaplicar renomeações salvas ao TOP50 em memória (para que t.ass reflita o nome atual)
+    // topicNames: gist tem prioridade se carregou; caso contrário usa localStorage
+    const _lsNames = JSON.parse(localStorage.getItem('kb_topicNames') || '{}');
+    S.topicNames = Object.keys(meta.topicNames || {}).length ? meta.topicNames : _lsNames;
+    // Reaplicar renomeações ao TOP50 em memória (para que t.ass reflita o nome atual)
     Object.entries(S.topicNames).forEach(([k, v]) => { const t = TOP50.find(x => x.top === +k); if (t) t.ass = v; });
     // Combina artigos de ambas as fontes sem duplicar (ID como chave)
     const byId = new Map();
@@ -1586,8 +1585,10 @@ async function renameTopic(top) {
   if (!novo || novo.trim() === t.ass) return;
   t.ass = novo.trim();
   S.topicNames = { ...S.topicNames, [top]: t.ass };
+  localStorage.setItem('kb_topicNames', JSON.stringify(S.topicNames));
   const ok = await pushGist({});
-  if (ok) { toast('Nome do tema atualizado!', 'ok'); renderTopics(); }
+  if (ok) { toast('Nome do tema atualizado!', 'ok'); } else { toast('Nome salvo localmente (gist falhou)', 'inf'); }
+  renderTopics();
 }
 
 function openTopic(top) {
