@@ -1139,7 +1139,7 @@ function populateSelect() {
     });
     return;
   }
-  if (S.analista !== 'João' && S.formTipo !== 'interno') {
+  if (S.formTipo !== 'interno') {
     const optNew = document.createElement('option');
     optNew.value = 'custom';
     optNew.textContent = '➕ Novo Tema (tema livre)';
@@ -1440,17 +1440,19 @@ function renderTopics() {
   const isCalais = S.analista === 'Calais';
   // Mostrar/ocultar botão Novo Tema
   const btnNT = document.getElementById('btnNovoTema');
-  if (btnNT) btnNT.style.display = S.analista && S.analista !== 'João' ? '' : 'none';
+  if (btnNT) btnNT.style.display = S.analista ? '' : 'none';
 
   if (S.analista === 'João') {
     const meus = S.artigos.filter(a => a.analista === 'João' && a.top === 21);
-    document.getElementById('topicsH').textContent = `João — Financeiro (${meus.length} artigo(s))`;
-    document.getElementById('navBadge').textContent = meus.length || '—';
-    document.getElementById('tgrid').innerHTML = meus.length ? meus.map(a => `
+    const livresJoao = S.artigos.filter(a => a.analista === 'João' && a.top === null);
+    const todosJoao = [...meus, ...livresJoao];
+    document.getElementById('topicsH').textContent = `João — Financeiro (${meus.length} artigo(s))${livresJoao.length ? ` + ${livresJoao.length} livre(s)` : ''}`;
+    document.getElementById('navBadge').textContent = todosJoao.length || '—';
+    document.getElementById('tgrid').innerHTML = todosJoao.length ? todosJoao.map(a => `
       <div class="tc done" onclick="editArticle('${a.id}')">
-        <div class="tc-num" style="background:${a.tipo==='interno'?'#fef3c7':'#ecfeff'};color:${a.tipo==='interno'?'#b45309':'#0891b2'}">✦</div>
+        <div class="tc-num" style="background:${a.top===null?'#ecfeff':a.tipo==='interno'?'#fef3c7':'#ecfeff'};color:${a.top===null?'#0891b2':a.tipo==='interno'?'#b45309':'#0891b2'}">${a.top===null?'✦':'✦'}</div>
         <div class="tc-body">
-          <div class="tc-name">${esc(a.titulo || a.assunto)}</div>
+          <div class="tc-name">${esc(a.titulo || a.assunto)}${a.top===null?' <span style="font-size:10.5px;color:var(--muted);font-weight:400">(tema livre)</span>':''}</div>
           <div class="tc-st" style="color:${a.tipo==='interno'?'#b45309':'#0891b2'}">✔ ${a.tipo==='interno'?'Interno':'Externo'}</div>
         </div>
         <div class="tc-arr">›</div>
@@ -1464,7 +1466,7 @@ function renderTopics() {
   const dc   = mine.filter(t => done.has(t.top)).length;
 
   // Para Calais: incluir também temas livres (top === null)
-  const customCalais = S.analista !== 'João' ? externos.filter(a => a.analista === S.analista && a.top === null) : [];
+  const customCalais = externos.filter(a => a.analista === S.analista && a.top === null);
   // Artigos do analista cujo top não está mais no TOP50 (órfãos por reatribuição de temas)
   const mineTopSet = new Set(mine.map(t => t.top));
   const orphans = externos.filter(a => a.analista === S.analista && a.top !== null && !mineTopSet.has(a.top));
