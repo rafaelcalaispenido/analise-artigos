@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Conhecimento — eNotas</title>
+  <link rel="icon" href="logo-enotas.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="logo-enotas.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sh">
+    <div class="sh-logo">
+      <img id="logoImg" src="logo-enotas.jpg" alt="eNotas">
+      <div class="logo-fb" id="logoFb">eNotas KB</div>
+    </div>
+    <div class="sh-title">Base de Conhecimento · Central de Ajuda</div>
+  </div>
+
+  <div id="sAnalyst" class="s-analyst-empty">Nenhum analista selecionado</div>
+
+  <nav class="s-nav">
+    <div class="nlbl">Navegação</div>
+    <div class="ni active" id="nav-home"      onclick="goTo('home')">      <span class="ni-ico"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 21V12h6v9"/></svg></span> Início</div>
+    <div class="ni"         id="nav-topics"    onclick="goTo('topics')">    <span class="ni-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span> Artigos Externos <span class="nbadge" id="navBadge">—</span></div>
+    <div class="ni"         id="nav-internos"  onclick="goTo('internos')">  <span class="ni-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span> Artigos Internos <span class="nbadge" id="navBadgeInt">—</span></div>
+    <div class="nlbl">Geral</div>
+    <div class="ni"         id="nav-producao"  onclick="goTo('producao')">  <span class="ni-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg></span> Produção <span class="nbadge" id="navBadgeProd">—</span></div>
+    <div class="ni"         id="nav-dashboard" onclick="goTo('dashboard')"> <span class="ni-ico"><svg viewBox="0 0 24 24"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg></span> Dashboard</div>
+    <div class="ni"         id="nav-info"      onclick="goTo('info')">      <span class="ni-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span> Informações</div>
+    <div class="ni" id="nav-ajuda" onclick="goTo('ajuda')"><span class="ni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Ajuda</div>
+  </nav>
+
+  <div class="s-foot">
+    <span class="sdot spin" id="sdot"></span>
+    <span id="stxt">Conectando…</span>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="topbar">
+    <div class="tb-left"></div>
+    <div class="tb-center">
+      <h1>Gestão de Conhecimento — eNotas</h1>
+      <p id="tbsub">Base de Conhecimento</p>
+    </div>
+    <div class="tb-right">
+      
+      <button class="btn btn-outline btn-sm" onclick="loadData()" title="Sincronizar"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button>
+      <button class="btn btn-green  btn-sm" onclick="downloadXLSX()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Planilha</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="notifBanner"></div>
+
+    <!-- HOME -->
+    <div class="view active" id="view-home">
+      <div class="home-wrap">
+        <h2>Quem é você?</h2>
+        <p class="sub">Selecione seu nome para acessar seus tópicos e preencher as informações dos artigos.</p>
+        <div class="ac-grid" id="ac-grid"></div>
+        <p style="margin-top:28px;font-size:12px;color:var(--dim)">Você pode trocar de analista a qualquer momento clicando em <strong>"Trocar"</strong> no menu lateral.</p>
+      </div>
+    </div>
+
+    <!-- TOPICS -->
+    <div class="view" id="view-topics">
+      <div class="topics-head">
+        <h2 id="topicsH">Artigos Externos</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline btn-sm" onclick="openDriveModal()" id="btnDrive"> Drive</button>
+          <button class="btn btn-outline btn-sm" id="btnNovoTema" onclick="openNovoTema()" style="display:none;border-color:#0891b2;color:#0891b2">+ Novo Tema</button>
+          <button class="btn btn-primary btn-sm" onclick="openNewForm()">+ Preencher novo</button>
+        </div>
+      </div>
+      <div class="topic-filter-bar" id="topicFilterBar" style="display:none">
+        <input type="text" class="fi topic-search" id="topicSearch" placeholder="Buscar tema…" oninput="applyTopicSearch()" />
+        <div class="filter-chips">
+          <button class="chip active" id="chip-todos"       onclick="setTopicFilter('todos')">Todos</button>
+          <button class="chip"        id="chip-pendente"    onclick="setTopicFilter('pendente')">Pendentes</button>
+          <button class="chip"        id="chip-homologacao" onclick="setTopicFilter('homologacao')">Homologação</button>
+          <button class="chip"        id="chip-producao"    onclick="setTopicFilter('producao')">Produção</button>
+        </div>
+      </div>
+      <div class="tgrid" id="tgrid"></div>
+    </div>
+
+    <!-- INTERNOS -->
+    <div class="view" id="view-internos">
+      <div class="topics-head">
+        <h2 id="internosH">Artigos Internos</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary btn-sm" onclick="openNewInternalForm()">+ Preencher novo</button>
+        </div>
+      </div>
+      <div class="tgrid" id="tgridInt"></div>
+      <h3 style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 12px">Artigos internos já criados</h3>
+      <div class="tgrid" id="internosList"></div>
+    </div>
+
+    <!-- FORM -->
+    <div class="view" id="view-form">
+      <div class="form-wrap">
+        <div class="form-head">
+          <span class="fh-badge" id="fBadge">#—</span>
+          <h2 id="fTitle">Selecione um tópico</h2>
+          <span class="tag" id="fTipoBadge" style="margin-left:auto;display:none"></span>
+          <div id="fTipoToggle" style="display:none;gap:6px;align-items:center;margin-left:auto">
+            <button type="button" class="btn btn-outline btn-sm" id="fTipoBtnExt" onclick="setJoaoTipo('externo')"> Externo</button>
+            <button type="button" class="btn btn-outline btn-sm" id="fTipoBtnInt" onclick="setJoaoTipo('interno')"> Interno</button>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Assunto <span class="req">*</span></label>
+          <select class="fs" id="fAss" onchange="onAssChange()">
+            <option value="">— Selecione um tópico —</option>
+          </select>
+          <!-- Campo de tema livre — visível apenas para Calais ao selecionar "Novo Tema" -->
+          <div id="fCustomTopicWrap" style="margin-top:8px">
+            <input class="fi" type="text" id="fCustomTopic" placeholder="Digite o nome do novo tema…" />
+            <p class="fhint">Este tema não faz parte do TOP 50 — tema livre do analista.</p>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Link do Artigo Principal <span class="req">*</span></label>
+          <input class="fi" type="url" id="fLink" placeholder="https://suporte.enotas.com.br/hc/pt-br/articles/…" />
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Links Unificados <span style="text-transform:none;font-weight:400;color:var(--muted)">(artigos que serão incorporados neste)</span></label>
+          <div class="links-list" id="linksList"></div>
+          <button class="add-link-btn" onclick="addLink()">+ Adicionar link</button>
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Título do Artigo</label>
+          <input class="fi" type="text" id="fTitulo" placeholder="Insira o título do artigo principal" />
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Tags <span style="font-weight:400;color:var(--muted)">(palavras-chave separadas por vírgula)</span></label>
+          <input class="fi" type="text" id="fTags" placeholder="ex: nota fiscal, NFS-e, certificado digital, integração" />
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Conteúdo do Artigo</label>
+          <div class="qh"><div id="quillEditor"></div></div>
+          <p class="fhint">Use <strong>[inserir img-1]</strong>, <strong>[inserir img-2]</strong>… para indicar onde as imagens devem aparecer. Consulte a aba <em>Link Imagens</em> para o processo completo.</p>
+        </div>
+
+        <div class="fg">
+          <label class="flbl">Observações / Próxima Revisão</label>
+          <div class="fg-revisao">
+            <div>
+              <textarea class="fi" id="fRevisaoObs" rows="2" placeholder="Anotações sobre revisão futura, pendências, contexto…" style="resize:vertical;line-height:1.5"></textarea>
+            </div>
+            <div>
+              <label class="flbl" style="margin-top:0">Data de Revisão</label>
+              <input class="fi" type="date" id="fRevisaoData" />
+              <p class="revisao-hint">Você será notificado quando a data chegar.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btnSave" onclick="saveArticle()">Salvar Artigo</button>
+          <button class="btn btn-outline" id="btnSaveNext" onclick="saveAndNext()" style="border-color:var(--primary);color:var(--primary)">Salvar e ir para o próximo</button>
+          <button class="btn btn-outline" onclick="confirmClearForm()">Limpar</button>
+          <span class="editing-lbl" id="editLbl" style="display:none"> Editando — <a onclick="cancelEdit()">cancelar</a></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUÇÃO -->
+    <div class="view" id="view-producao">
+      <div class="flex-between" style="margin-bottom:20px">
+        <h2 style="font-size:17px;font-weight:700">Produção</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="tag t-homolog" id="prodHomBadge">0 em Homologação</span>
+          <span class="tag t-prod"    id="prodProdBadge">0 em Produção</span>
+          <a href="https://rafaelcalaispenido.github.io/acompanhamento-artigos/" target="_blank" class="btn btn-outline btn-sm" style="margin-left:8px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Ver acompanhamento</a>
+          <button class="btn btn-outline btn-sm" onclick="refreshAndOpenDash()" title="Busca dados mais recentes e abre o dashboard de acompanhamento"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Atualizar dashboard</button>
+        </div>
+      </div>
+      <div class="row2">
+        <div>
+          <div class="prod-col-title homolog">Em Homologação</div>
+          <div id="homologList"></div>
+        </div>
+        <div>
+          <div class="prod-col-title prod">Em Produção</div>
+          <div id="producaoList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="view" id="view-dashboard">
+      <div class="kpi-grid">
+        <div class="kc cg"><div class="klbl">Total Preenchidos</div><div class="kval" id="kT">0</div><div class="ksub">temas registrados</div></div>
+        <div class="kc cp"><div class="klbl">Brena</div><div class="kval" id="kB">0</div><div class="ksub">tópicos atribuídos</div></div>
+        <div class="kc cb"><div class="klbl">Alexandre</div><div class="kval" id="kA">0</div><div class="ksub">tópicos atribuídos</div></div>
+        <div class="kc ce"><div class="klbl">Luana</div><div class="kval" id="kL">0</div><div class="ksub">tópicos atribuídos</div></div>
+        <div class="kc ct"><div class="klbl">Calais</div><div class="kval" id="kC">0</div><div class="ksub">Temas Livres</div></div>
+        <div class="kc" style="overflow:hidden;position:relative"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#d97706"></div><div class="klbl">Rapha</div><div class="kval" id="kR">0</div><div class="ksub">tópicos atribuídos</div></div>
+        <div class="kc co"><div class="klbl">Pendentes</div><div class="kval" id="kP">50</div><div class="ksub" id="kPct">0% concluído</div></div>
+        <div class="kc" style="overflow:hidden;position:relative"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:#d97706"></div><div class="klbl">Homologação</div><div class="kval" id="kHomolog">0</div><div class="ksub">aguardando validação</div></div>
+        <div class="kc" style="overflow:hidden;position:relative"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--green)"></div><div class="klbl">Em Produção</div><div class="kval" id="kProd">0</div><div class="ksub">publicados</div></div>
+        <div id="kpi-custom"></div>
+      </div>
+
+      <div class="row2">
+        <div class="card">
+          <div class="card-h"><div class="card-t"><span class="dot dp"></span>Progresso por Analista</div></div>
+          <div class="card-b">
+            <div class="pr"><span class="pn">Brena</span>    <div class="pb"><div class="pf fB" id="barB" style="width:0%"></div></div><span class="pp" id="pctB">0%</span></div>
+            <div class="pr"><span class="pn">Alexandre</span><div class="pb"><div class="pf fA" id="barA" style="width:0%"></div></div><span class="pp" id="pctA">0%</span></div>
+            <div class="pr"><span class="pn">Luana</span>    <div class="pb"><div class="pf fL" id="barL" style="width:0%"></div></div><span class="pp" id="pctL">0%</span></div>
+            <div class="pr"><span class="pn" style="color:#0891b2">Calais</span>   <div class="pb"><div class="pf fC" id="barC" style="width:0%"></div></div><span class="pp" id="pctC">—</span></div>
+            <div class="pr"><span class="pn" style="color:#d97706">Rapha</span>    <div class="pb"><div class="pf fR" id="barR" style="width:0%"></div></div><span class="pp" id="pctR">0%</span></div>
+            <div id="bars-custom"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h fb">
+            <div class="card-t"><span class="dot dg"></span>Resumo por Analista</div>
+            <select class="fs btn-sm" id="dashFilter" onchange="renderDashTable()" style="width:auto;padding:4px 10px;font-size:12px">
+              <option value="">Todos</option><option>Brena</option><option>Alexandre</option><option>Luana</option><option>Calais</option><option>Rapha</option>
+            </select>
+          </div>
+          <div class="card-b" id="sumCards" style="display:flex;flex-direction:column;gap:0"></div>
+        </div>
+      </div>
+
+      <div class="card mt4">
+        <div class="card-h fb">
+          <div class="card-t"><span class="dot db"></span>Artigos Registrados</div>
+          <button class="btn btn-outline btn-sm" onclick="downloadXLSX()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Baixar planilha</button>
+        </div>
+        <div class="twrap">
+          <table class="dt">
+            <thead><tr><th>TOP</th><th>Assunto</th><th>Analista</th><th>Artigo Principal</th><th>Links Unif.</th><th>Drive</th><th>Data</th><th>Ações</th></tr></thead>
+            <tbody id="dashTb"></tbody>
+          </table>
+          <div class="empty-state" id="dashEmpty" style="display:none">
+            <span class="ei"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><p>Nenhum artigo registrado. Vá para <strong>Artigos Externos</strong> para começar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMAGES -->
+    <div class="view" id="view-images">
+      <div class="img-wrap">
+        <div class="card">
+          <div class="card-h"><div class="card-t"><span class="dot dp"></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Guia — Imagens dos Artigos</div></div>
+          <div class="card-b">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Siga o processo abaixo para disponibilizar as imagens que acompanharão cada artigo na Central de Ajuda.</p>
+            <ol class="inst">
+              <li>Insira as imagens no <strong>Google Drive compartilhado</strong> da equipe, dentro de pastas individuais para cada artigo.</li>
+              <li>Cada pasta deverá ter exatamente o <strong>nome do assunto/artigo principal</strong> conforme o nome do assunto/artigo.<br>Exemplos: <span class="mono">Portal Nacional</span>, <span class="mono">Hotmart</span>, <span class="mono">Certificado</span></li>
+              <li>Nomeie as imagens em sequência: <span class="mono">img-1</span>, <span class="mono">img-2</span>, <span class="mono">img-3</span>… Sem espaços, somente hífens.</li>
+              <li>Salve em formato <strong>PNG ou JPG</strong>, com boa resolução (mín. 1200 px de largura) e sem dados sensíveis expostos.</li>
+              <li>No campo <strong>Conteúdo</strong> do formulário, indique onde cada imagem deve aparecer usando <span class="mono">[inserir img-N]</span>.</li>
+              <li>Após organizar no Drive, copie o link da <strong>pasta do artigo</strong> e cole no campo abaixo, na linha correspondente.</li>
+            </ol>
+            <div class="ex-box">
+              <div class="ex-lbl">Exemplo de referência no conteúdo</div>
+              1. Busque por "Central de Colaboradores" na barra de busca no menu lateral esquerdo.<br>
+              [inserir img-1]<br><br>
+              2. Clique em "Acessar" para abrir o módulo.<br>
+              [inserir img-2]<br><br>
+              3. Na tela inicial, selecione a empresa desejada.<br>
+              [inserir img-3]
+            </div>
+          </div>
+        </div>
+        <div class="card mt4">
+          <div class="card-h"><div class="card-t"><span class="dot dg"></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Links do Drive por Artigo</div></div>
+          <div class="card-b">
+            <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px">Registre o link da pasta no Drive referente a cada artigo já preenchido.</p>
+            <div id="driveList"></div>
+            <div class="empty-state" id="driveEmpty" style="display:none"><span class="ei"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></span><p>Nenhum artigo preenchido ainda.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="view" id="view-info">
+      <div class="info-wrap">
+        <div class="card">
+          <div class="card-h"><div class="card-t"><span class="dot dp"></span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Status da Conexão</div></div>
+          <div class="info-body">
+            <div id="connNotice" class="notice n-info">Verificando conexão com o banco de dados…</div>
+            <div class="info-row"><span class="ir-lbl">Banco de dados</span>  <span class="ir-val">GitHub Gist (privado)</span></div>
+            <div class="info-row"><span class="ir-lbl">Gist ID</span>         <span class="ir-val" id="infoGistId" style="letter-spacing:3px;color:var(--muted)">••••••••••••••••••••••••••••••••</span></div>
+            <div class="info-row"><span class="ir-lbl">Artigos salvos</span>  <span class="ir-val" id="infoCount">—</span></div>
+            <div class="info-row"><span class="ir-lbl">Última sinc.</span>    <span class="ir-val" id="infoSync">—</span></div>
+            <button class="btn btn-outline btn-sm" onclick="loadData()" style="align-self:flex-start"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Sincronizar agora</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-h"><div class="card-t"><span class="dot dp"></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg> Boas Práticas para Criação de KBs</div></div>
+          <div style="padding:20px 22px;display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap">
+            <div style="flex:1;min-width:240px">
+              <p style="font-size:14px;line-height:1.7;color:var(--text);margin-bottom:14px">
+                Manter um padrão na criação dos artigos é essencial para garantir uma experiência consistente e de qualidade para os clientes da Central de Ajuda eNotas.
+              </p>
+              <p style="font-size:13.5px;line-height:1.6;color:var(--muted)">
+                Acesse o guia completo de boas práticas para entender a estrutura recomendada, o tom de voz, o uso de imagens e as principais diretrizes editoriais na elaboração dos seus artigos.
+              </p>
+            </div>
+            <a href="https://docs.google.com/document/d/1ln0YUkkF-pOTH4LQnKnnPgXv_PskbtNqemcXkIOgjhs/edit?tab=t.0#heading=h.qa4ajznqytx4"
+               target="_blank"
+               style="flex-shrink:0;display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:var(--primary);color:#fff;border-radius:var(--rs);font-size:13px;font-weight:600;text-decoration:none;transition:background .15s;align-self:center"
+               onmouseover="this.style.background='var(--ph)'"
+               onmouseout="this.style.background='var(--primary)'">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Ver guia de boas práticas
+            </a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-t"><span class="dot db"></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Distribuição de Temas</div></div>
+          <div class="twrap">
+            <table class="dt"><thead><tr><th>#</th><th>Assunto</th><th>Responsável</th><th>Status</th></tr></thead>
+            <tbody id="top50Body"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AJUDA -->
+    <div class="view" id="view-ajuda">
+      <div class="gd-wrap">
+        <div class="card">
+          <div class="gd-steps" id="guideStepsBar"></div>
+          <div class="gd-body">
+            <div class="gd-pane" id="guideContent"></div>
+            <div class="gd-sb">
+              <div class="gd-sb-lbl">Tópicos</div>
+              <ul class="gd-sb-list" id="guideSidebarList"></ul>
+            </div>
+          </div>
+          <div class="gd-foot">
+            <button class="btn btn-outline btn-sm" id="gdBtnPrev" onclick="guideNavigate(-1)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Anterior
+            </button>
+            <span class="gd-ctr" id="gdCounter"></span>
+            <button class="btn btn-primary btn-sm" id="gdBtnNext" onclick="guideNavigate(1)">
+              Próximo
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div id="toast-area"></div>
+<div id="loader"><div class="spinner"></div></div>
+
+<!-- COLAR HTML MODAL -->
+<div class="modal-ov" id="colarHtmlModal">
+  <div class="modal-box" style="max-width:700px">
+    <div class="modal-mh">
+      <h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Colar HTML no editor</h3>
+      <button class="modal-close" onclick="closeColarHtmlModal()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-mb">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Cole o HTML abaixo. Ao confirmar, o conteúdo será carregado no editor substituindo o que estiver nele.</p>
+      <textarea id="colarHtmlArea"
+        placeholder="Cole o HTML aqui…"
+        style="width:100%;min-height:220px;font-family:'Fira Code','Consolas',monospace;font-size:12px;line-height:1.6;padding:12px;border:1px solid var(--border2);border-radius:var(--rs);resize:vertical;outline:none;background:#fafafa;color:#1e1e1e;transition:border-color .13s"
+        onfocus="this.style.borderColor='var(--primary)'"
+        onblur="this.style.borderColor='var(--border2)'"></textarea>
+      <div style="display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" onclick="loadHtmlFromModal()">Carregar no editor</button>
+        <button class="btn btn-outline" onclick="closeColarHtmlModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AVISO MODAL -->
+<div class="modal-ov" id="avisoModal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-mh">
+      <h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Inserir Aviso</h3>
+      <button class="modal-close" onclick="closeAvisoModal()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-mb">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Escreva o texto do aviso. Ele aparecerá no artigo com o destaque ⚠️ IMPORTANTE!</p>
+      <textarea id="avisoText" class="faq-textarea" rows="3"
+        placeholder="Ex: A adição de informações em uma nota só pode ser realizada antes da emissão da nota fiscal."
+        style="width:100%;min-height:80px"
+        oninput="syncAvisoPreview()"></textarea>
+      <div id="avisoPreview" style="margin-top:12px;background:#fff;border:1px solid #333;border-radius:4px;padding:10px 14px;font-size:13.5px">
+        ⚠️ <strong>IMPORTANTE!</strong> <span id="avisoPreviewText" style="color:#9ca3af">Prévia do aviso…</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" id="btnInsertAviso" onclick="insertAviso()">Inserir no artigo</button>
+        <button class="btn btn-outline" onclick="closeAvisoModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CAIXA EXPANSIVA MODAL -->
+<div class="modal-ov" id="faqModal">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-mh">
+      <h3 id="faqModalTitle">Inserir Caixa Expansiva</h3>
+      <button class="modal-close" onclick="closeCaixaModal()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-mb">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Adicione as linhas da caixa expansiva. Cada linha tem um <strong>título</strong> (visível fechada) e um <strong>conteúdo</strong> (visível ao expandir). Você pode adicionar quantas linhas quiser.</p>
+      <div id="faqRows"></div>
+      <button class="faq-add-row" onclick="addCaixaRow()">+ Adicionar linha</button>
+      <div style="display:flex;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+        <button class="btn btn-primary" id="btnInsertCaixa" onclick="insertCaixaHtml()">Inserir no artigo</button>
+        <button class="btn btn-outline" onclick="closeCaixaModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM CLEAR MODAL -->
+<div class="modal-ov" id="confirmClearModal">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-mh">
+      <div>
+        <div class="m-badge">Atenção</div>
+        <h3>Limpar formulário?</h3>
+      </div>
+    </div>
+    <div class="modal-mb">
+      <p id="confirmClearMsg" style="font-size:13.5px;color:var(--muted);margin-bottom:20px">Todos os dados preenchidos serão apagados. Esta ação não pode ser desfeita.</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="closeConfirmClear()">Cancelar</button>
+        <button class="btn btn-danger" onclick="doConfirmClear()">Sim, limpar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRIVE MODAL -->
+<div class="modal-ov" id="driveModal">
+  <div class="modal-box">
+    <div class="modal-mh">
+      <div>
+        <h3><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Link de Imagens</h3>
+      </div>
+      <button class="modal-close" onclick="closeDriveModal()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-mb">
+      <ul class="modal-list">
+        <li>Insira as imagens no Drive, dentro de subpastas referentes a cada artigo;</li>
+        <li>Essas pastas deverão ter o nome do artigo principal;</li>
+        <li>As imagens deverão ser nomeadas como <span class="mono">img-1</span>, <span class="mono">img-2</span>, <span class="mono">img-3</span>…</li>
+        <li>
+          As imagens deverão ser referenciadas no texto do conteúdo, exemplo:
+          <div class="modal-ex">1. Busque por "Central de Colaboradores" na barra de busca no menu lateral esquerdo.<br>[inserir img-1]</div>
+        </li>
+      </ul>
+      <div class="modal-drive-row">
+        <div class="modal-drive-label">Link do drive:</div>
+        <div class="modal-input-row">
+          <input class="fi" type="url" id="mDriveInput" placeholder="https://drive.google.com/drive/folders/…" />
+          <button class="btn btn-primary" onclick="saveModalDrive()">Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+<!-- ADD AGENT MODAL -->
+<!-- TRANSFER AGENT MODAL -->
+<div class="modal-ov" id="transferModal">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-mh">
+      <div><span class="m-badge" style="background:var(--rl);color:var(--red)">Excluir Analista</span><h3 style="margin-top:4px">Transferir temas</h3></div>
+      <button class="modal-close" onclick="document.getElementById('transferModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-mb">
+      <p style="font-size:13.5px;line-height:1.65;margin-bottom:16px">
+        O analista <strong id="transferFromName"></strong> possui <strong id="transferCount"></strong> tema(s) criado(s).
+        Antes de excluí-lo, escolha para qual analista esses temas serão transferidos.
+      </p>
+      <div class="fg" style="margin-bottom:20px">
+        <label class="flbl">Transferir para <span class="req">*</span></label>
+        <select class="fs" id="transferTargetSel"></select>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-danger" style="flex:1" onclick="confirmTransfer()">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Transferir e Excluir
+        </button>
+        <button class="btn btn-outline" onclick="document.getElementById('transferModal').classList.remove('open')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="addAgentModal" onclick="closeAddAgentModal(event)">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-mh">
+      <div><span class="m-badge">Novo Agente</span><h3 style="margin-top:4px">Adicionar analista</h3></div>
+      <button class="modal-close" onclick="document.getElementById('addAgentModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-mb">
+      <div class="fg" style="margin-bottom:14px">
+        <label class="flbl">Nome do Analista <span class="req">*</span></label>
+        <input class="fi" type="text" id="newAgentName" placeholder="Ex: Fernanda, Thiago…" maxlength="30" />
+      </div>
+      <div class="fg" style="margin-bottom:20px">
+        <label class="flbl">Cor do Avatar</label>
+        <div class="agent-color-dots" id="agentColorDots"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" style="flex:1" onclick="confirmAddAgent()">Adicionar</button>
+        <button class="btn btn-outline" onclick="document.getElementById('addAgentModal').classList.remove('open')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
