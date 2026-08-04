@@ -386,6 +386,52 @@
 
     /* ─── SVG ICONS ─── */
     .ni-ico svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+
+    /* ─── GUIA DE AJUDA ─── */
+    .gd-wrap { max-width: 860px; margin: 0 auto; }
+    .gd-steps { padding: 20px 28px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+    .gd-step-item { display: flex; align-items: center; }
+    .gd-circle { width: 30px; height: 30px; border-radius: 50%; background: var(--border2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; transition: background .2s, transform .15s; flex-shrink: 0; }
+    .gd-circle.done   { background: var(--primary); }
+    .gd-circle.active { background: var(--primary); transform: scale(1.12); box-shadow: 0 0 0 4px var(--pm); }
+    .gd-conn { width: 36px; height: 2px; background: var(--border2); transition: background .2s; flex-shrink: 0; }
+    .gd-conn.done { background: var(--primary); }
+    .gd-body { display: grid; grid-template-columns: 1fr 210px; min-height: 360px; }
+    @media (max-width: 640px) { .gd-body { grid-template-columns: 1fr; } .gd-sb { display: none; } }
+    .gd-pane { padding: 26px 30px 22px; border-right: 1px solid var(--border); }
+    .gd-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--primary); margin-bottom: 9px; }
+    .gd-title { font-size: 21px; font-weight: 800; line-height: 1.2; margin-bottom: 11px; }
+    .gd-lead { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; max-width: 52ch; }
+    .gd-list { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+    .gd-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.65; }
+    .gd-list li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; margin-top: 8px; }
+    .gd-list strong { font-weight: 700; }
+    .gd-chip  { display: inline; background: var(--pl); color: var(--primary); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
+    .gd-chip.g { background: var(--gl); color: var(--green); border: 1px solid var(--gb); }
+    .gd-chip.a { background: #fffbeb; color: var(--orange); border: 1px solid #fde68a; }
+    .gd-sub { margin-top: 18px; }
+    .gd-sub-t { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 9px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .gd-callout { margin-top: 16px; background: var(--pl); border: 1px solid var(--pm); border-left: 3px solid var(--primary); border-radius: var(--rs); padding: 10px 14px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .gd-callout strong { color: var(--primary); }
+    .gd-sb { padding: 22px 16px; background: var(--bg); }
+    .gd-sb-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); margin-bottom: 10px; }
+    .gd-sb-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .gd-sb-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: var(--rs); cursor: pointer; transition: background .12s; }
+    .gd-sb-item:hover { background: var(--border); }
+    .gd-sb-item.active { background: var(--pl); }
+    .gd-sb-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
+    .gd-sb-item.done .gd-sb-dot, .gd-sb-item.active .gd-sb-dot { background: var(--primary); }
+    .gd-sb-name { font-size: 12.5px; font-weight: 500; color: var(--muted); line-height: 1.3; }
+    .gd-sb-item.active .gd-sb-name { color: var(--primary); font-weight: 600; }
+    .gd-sb-item.done   .gd-sb-name { color: var(--text); }
+    .gd-foot { padding: 12px 22px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .gd-ctr { font-size: 12px; color: var(--dim); font-weight: 500; }
+    .gd-av-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .gd-av-chip { display: flex; align-items: center; gap: 6px; padding: 5px 11px 5px 7px; border-radius: 30px; border: 1px solid var(--border2); background: var(--white); font-size: 12px; font-weight: 600; }
+    .gd-av { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; }
+    .gd-st-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .gd-st-chip { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--rs); border: 1px solid var(--border); background: var(--white); font-size: 12px; font-weight: 600; }
+    .gd-st-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -411,6 +457,7 @@
     <div class="ni"         id="nav-producao"  onclick="goTo('producao')">  <span class="ni-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg></span> Produção <span class="nbadge" id="navBadgeProd">—</span></div>
     <div class="ni"         id="nav-dashboard" onclick="goTo('dashboard')"> <span class="ni-ico"><svg viewBox="0 0 24 24"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg></span> Dashboard</div>
     <div class="ni"         id="nav-info"      onclick="goTo('info')">      <span class="ni-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span> Informações</div>
+    <div class="ni" id="nav-ajuda" onclick="goTo('ajuda')"><span class="ni-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Ajuda</div>
   </nav>
 
   <div class="s-foot">
@@ -711,6 +758,33 @@
           <div class="twrap">
             <table class="dt"><thead><tr><th>#</th><th>Assunto</th><th>Responsável</th><th>Status</th></tr></thead>
             <tbody id="top50Body"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AJUDA -->
+    <div class="view" id="view-ajuda">
+      <div class="gd-wrap">
+        <div class="card">
+          <div class="gd-steps" id="guideStepsBar"></div>
+          <div class="gd-body">
+            <div class="gd-pane" id="guideContent"></div>
+            <div class="gd-sb">
+              <div class="gd-sb-lbl">Tópicos</div>
+              <ul class="gd-sb-list" id="guideSidebarList"></ul>
+            </div>
+          </div>
+          <div class="gd-foot">
+            <button class="btn btn-outline btn-sm" id="gdBtnPrev" onclick="guideNavigate(-1)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Anterior
+            </button>
+            <span class="gd-ctr" id="gdCounter"></span>
+            <button class="btn btn-primary btn-sm" id="gdBtnNext" onclick="guideNavigate(1)">
+              Próximo
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -2306,6 +2380,188 @@ function goTo(view) {
   if (view === 'home')       { updateHomeCards(); }
   // 'form' não chama populateSelect() aqui pois os chamadores (openTopic, openNewForm, editArticle)
   // já fazem isso antes de setar o valor selecionado.
+  if (view === 'ajuda') { guideRender(); }
+}
+
+// ═══════════════════════════════════════════════════
+//  GUIA DE AJUDA
+// ═══════════════════════════════════════════════════
+const GUIDE_STEPS = [
+  {
+    title: 'O que é a plataforma?',
+    render: () => `
+      <div class="gd-eyebrow">Passo 1 de 5</div>
+      <h1 class="gd-title">O que é a Base de Conhecimento?</h1>
+      <p class="gd-lead">Uma plataforma para os analistas do time eNotas documentarem, organizarem e acompanharem os artigos da Central de Ajuda — em um único lugar, sempre atualizado para todos.</p>
+      <ul class="gd-list">
+        <li><span><strong>Centraliza o conhecimento:</strong> cada tema do atendimento tem um espaço dedicado, com o artigo principal, links unificados, conteúdo e observações.</span></li>
+        <li><span><strong>Sincronização automática:</strong> todos os dados ficam em um repositório compartilhado (GitHub Gist). Qualquer analista que abrir a plataforma verá exatamente os mesmos dados, de qualquer dispositivo.</span></li>
+        <li><span><strong>Sem instalação:</strong> acesse pelo link do GitHub Pages — nenhum app para instalar.</span></li>
+      </ul>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Dois tipos de artigo</div>
+        <ul class="gd-list">
+          <li><span><strong>Externo</strong> <span class="gd-chip">Externo</span> — artigo publicado na Central de Ajuda (Zendesk), visível para os clientes.</span></li>
+          <li><span><strong>Interno</strong> <span class="gd-chip a">Interno</span> — documentação de uso interno da equipe. Não publicado para clientes.</span></li>
+        </ul>
+      </div>
+      <div class="gd-callout"><strong>Dica:</strong> O menu lateral sempre mostra seu contexto atual — qual analista está ativo, quantos artigos estão preenchidos e o status da conexão com o Gist.</div>`
+  },
+  {
+    title: 'Seu Perfil',
+    render: () => `
+      <div class="gd-eyebrow">Passo 2 de 5</div>
+      <h1 class="gd-title">Identificando seu perfil</h1>
+      <p class="gd-lead">Ao abrir a plataforma, a primeira tela pede que você se identifique. Isso define quais temas aparecem para você e com qual analista os artigos serão salvos.</p>
+      <ul class="gd-list">
+        <li><span><strong>Analistas fixos:</strong> clique no seu card na tela inicial para começar.</span></li>
+      </ul>
+      <div class="gd-av-grid">
+        ${[{n:'Brena',i:'B',c:'#7c3aed'},{n:'Alexandre',i:'A',c:'#2563eb'},{n:'Luana',i:'L',c:'#059669'},{n:'Calais',i:'C',c:'#0891b2'},{n:'Rapha',i:'R',c:'#d97706'},{n:'João',i:'J',c:'#db2777'}]
+          .map(a=>`<div class="gd-av-chip"><div class="gd-av" style="background:${a.c}">${a.i}</div>${a.n}</div>`).join('')}
+      </div>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Adicionando um novo analista</div>
+        <ul class="gd-list">
+          <li><span>Clique no card <strong>+ Novo Agente</strong> no final da grade.</span></li>
+          <li><span>Digite o nome e escolha uma cor — ou deixe ser atribuída automaticamente.</span></li>
+          <li><span>Novos analistas trabalham em modo de <strong>temas livres</strong>: criam seus próprios temas, sem lista pré-definida.</span></li>
+          <li><span>Para remover: passe o mouse sobre o card e clique no ícone de lixeira. Os artigos desse analista permanecem no banco de dados, mas ficam <strong>inacessíveis pela interface</strong> — exporte a planilha antes de remover caso queira guardar os dados.</span></li>
+        </ul>
+      </div>
+      <div class="gd-callout"><strong>Trocar de analista:</strong> clique em <strong>"Trocar"</strong> no menu lateral para voltar à tela inicial e selecionar outro perfil.</div>`
+  },
+  {
+    title: 'Preenchendo Artigos',
+    render: () => `
+      <div class="gd-eyebrow">Passo 3 de 5</div>
+      <h1 class="gd-title">Preenchendo artigos</h1>
+      <p class="gd-lead">Após selecionar seu perfil, você vê a grade de tópicos — os temas que são sua responsabilidade. Cada card mostra o status atual e a data de última atualização.</p>
+      <div class="gd-st-row">
+        <div class="gd-st-chip"><div class="gd-st-dot" style="background:#d1d5db"></div> Pendente</div>
+        <div class="gd-st-chip"><div class="gd-st-dot" style="background:#d97706"></div> Homologação</div>
+        <div class="gd-st-chip"><div class="gd-st-dot" style="background:#16a34a"></div> Produção</div>
+      </div>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Ordenação automática</div>
+        <ul class="gd-list">
+          <li><span>Temas preenchidos aparecem <strong>do mais antigo para o mais recente</strong> — quem está há mais tempo sem ser revisitado fica no topo.</span></li>
+          <li><span>Temas <strong>pendentes</strong> ficam sempre ao final da lista.</span></li>
+        </ul>
+      </div>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Formulário do artigo</div>
+        <ul class="gd-list">
+          <li><span><strong>Link principal</strong> <span class="gd-chip">Obrigatório</span> — URL do artigo no Zendesk.</span></li>
+          <li><span><strong>Links unificados</strong> — artigos que serão incorporados neste. Adicione quantos precisar.</span></li>
+          <li><span><strong>Título e Tags</strong> — facilitam a busca futura e a exportação para planilha.</span></li>
+          <li><span><strong>Conteúdo</strong> — editor com suporte a caixas expansivas, avisos em destaque e blocos de FAQ.</span></li>
+        </ul>
+      </div>
+      <div class="gd-callout"><strong>Salvar e ir para o próximo:</strong> salva o artigo atual e abre automaticamente o próximo tema pendente — ideal para preenchimento sequencial.</div>`
+  },
+  {
+    title: 'Revisão e Organização',
+    render: () => `
+      <div class="gd-eyebrow">Passo 4 de 5</div>
+      <h1 class="gd-title">Revisão e organização</h1>
+      <p class="gd-lead">A plataforma tem um sistema de revisão para que artigos não fiquem desatualizados — e ferramentas de busca para navegar rapidamente entre muitos temas.</p>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Data de revisão</div>
+        <ul class="gd-list">
+          <li><span>No formulário há o campo <strong>Observações / Próxima Revisão</strong>: anotações e uma data programada.</span></li>
+          <li><span>Quando a data chegar ou passar, um <strong>banner amarelo</strong> aparece no topo listando os artigos que precisam de atenção.</span></li>
+          <li><span>O banner reaparece a cada abertura — até que a data seja atualizada para uma data futura.</span></li>
+          <li><span><strong>Dispensar</strong> oculta o banner apenas na sessão atual.</span></li>
+        </ul>
+      </div>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Busca e filtros</div>
+        <ul class="gd-list">
+          <li><span>A <strong>barra de busca</strong> acima da grade filtra temas em tempo real pelo nome.</span></li>
+          <li><span>Os <strong>chips de filtro</strong> permitem ver: Todos · Pendentes · Homologação · Produção.</span></li>
+          <li><span>Busca e filtro funcionam juntos — combine os dois para localizar exatamente o que precisa.</span></li>
+        </ul>
+      </div>
+      <div class="gd-callout"><strong>Artigos internos:</strong> acesse a aba <strong>"Artigos Internos"</strong> no menu lateral para documentação de uso interno, separada dos artigos externos da Central de Ajuda.</div>`
+  },
+  {
+    title: 'Dashboard e Produção',
+    render: () => `
+      <div class="gd-eyebrow">Passo 5 de 5</div>
+      <h1 class="gd-title">Dashboard e Produção</h1>
+      <p class="gd-lead">O dashboard consolida o progresso de todo o time em uma visão única. A aba Produção controla o ciclo de vida dos artigos — de Homologação até publicado.</p>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Dashboard</div>
+        <ul class="gd-list">
+          <li><span>Exibe <strong>total de artigos</strong>, contagem por analista, temas pendentes, em homologação e em produção.</span></li>
+          <li><span>As <strong>barras de progresso</strong> mostram o percentual preenchido por analista em relação aos temas atribuídos.</span></li>
+          <li><span>Analistas customizados (adicionados via + Novo Agente) também aparecem com suas respectivas contagens.</span></li>
+          <li><span>O filtro <strong>"Artigos Registrados"</strong> permite buscar todos os artigos por analista, com link direto para o Zendesk.</span></li>
+        </ul>
+      </div>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Ciclo de vida do artigo</div>
+        <ul class="gd-list">
+          <li><span>Todo artigo começa em <span class="gd-chip a">Homologação</span> — preenchido, mas aguardando validação.</span></li>
+          <li><span>Na aba <strong>Produção</strong>, clique em <strong>"Feito"</strong> para marcar como <span class="gd-chip g">Produção</span> — publicado e validado.</span></li>
+          <li><span>É possível <strong>reverter</strong> para Homologação caso o artigo precise de ajustes.</span></li>
+        </ul>
+      </div>
+      <div class="gd-sub">
+        <div class="gd-sub-t">Exportar planilha</div>
+        <ul class="gd-list">
+          <li><span>O botão <strong>Planilha</strong> no topo gera um arquivo Excel com todos os artigos, links e status — útil para revisões em equipe.</span></li>
+        </ul>
+      </div>`
+  },
+];
+
+let _guideCurrent = 0;
+
+function guideRender() {
+  const n = GUIDE_STEPS.length;
+  const step = GUIDE_STEPS[_guideCurrent];
+  const chk = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+  // Steps bar
+  let bHtml = '';
+  GUIDE_STEPS.forEach((s, i) => {
+    const cls = i < _guideCurrent ? 'done' : i === _guideCurrent ? 'active' : '';
+    bHtml += `<div class="gd-step-item"><div class="gd-circle ${cls}" onclick="guideGoTo(${i})" title="${s.title}" style="cursor:pointer">${i < _guideCurrent ? chk : `<span>${i+1}</span>`}</div></div>`;
+    if (i < n - 1) bHtml += `<div class="gd-conn ${i < _guideCurrent ? 'done' : ''}"></div>`;
+  });
+  document.getElementById('guideStepsBar').innerHTML = bHtml;
+
+  // Content
+  document.getElementById('guideContent').innerHTML = step.render();
+
+  // Sidebar
+  document.getElementById('guideSidebarList').innerHTML = GUIDE_STEPS.map((s, i) => {
+    const cls = i < _guideCurrent ? 'done' : i === _guideCurrent ? 'active' : '';
+    const dot = (i < _guideCurrent) ? `<div class="gd-sb-dot">${chk}</div>` : `<div class="gd-sb-dot"></div>`;
+    return `<li class="gd-sb-item ${cls}" onclick="guideGoTo(${i})">${dot}<span class="gd-sb-name">${s.title}</span></li>`;
+  }).join('');
+
+  // Footer
+  document.getElementById('gdCounter').textContent = `${_guideCurrent + 1} / ${n}`;
+  document.getElementById('gdBtnPrev').disabled = _guideCurrent === 0;
+  const isLast = _guideCurrent === n - 1;
+  document.getElementById('gdBtnNext').innerHTML = isLast
+    ? `Concluir <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+    : `Próximo <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+}
+
+function guideNavigate(dir) {
+  const next = _guideCurrent + dir;
+  if (next < 0) return;
+  _guideCurrent = next >= GUIDE_STEPS.length ? 0 : next;
+  guideRender();
+}
+
+function guideGoTo(idx) {
+  _guideCurrent = idx;
+  guideRender();
 }
 
 // ═══════════════════════════════════════════════════
