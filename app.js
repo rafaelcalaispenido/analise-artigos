@@ -1975,11 +1975,65 @@ function closeColarHtmlModal(event) {
   document.getElementById('colarHtmlModal').classList.remove('open');
 }
 
+function preprocessZendeskHtml(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+
+  // <zd-html-block> → ql-caixa-expansiva (detecta tanto dentro de table quanto soltos)
+  tmp.querySelectorAll('zd-html-block').forEach(zdBlock => {
+    const rows = [];
+    zdBlock.querySelectorAll('details').forEach(details => {
+      const sum = details.querySelector('summary');
+      const contentEl = details.querySelector('div');
+      // Remove decoração "❯ " que a plataforma adiciona ao exportar
+      let title = sum ? sum.textContent.trim().replace(/^[❯>\s]+/, '').trim() : '';
+      const content = contentEl ? contentEl.innerHTML : '';
+      if (title) rows.push({ title, content });
+    });
+    const div = document.createElement('div');
+    if (rows.length > 0) {
+      div.className = 'ql-caixa-expansiva';
+      div.setAttribute('data-rows', JSON.stringify(rows));
+    } else {
+      // Sem details: desmonta o wrapper e mantém o HTML interno
+      zdBlock.replaceWith(...Array.from(zdBlock.childNodes));
+      return;
+    }
+    zdBlock.replaceWith(div);
+  });
+
+  // <figure class="wysiwyg-table"> → ql-aviso
+  tmp.querySelectorAll('figure.wysiwyg-table').forEach(fig => {
+    const td = fig.querySelector('td');
+    if (!td) { fig.remove(); return; }
+    const text = td.textContent.replace(/⚠️\s*IMPORTANTE!\s*/i, '').trim();
+    const div = document.createElement('div');
+    div.className = 'ql-aviso';
+    div.setAttribute('data-text', text);
+    fig.replaceWith(div);
+  });
+
+  // Remove class wysiwyg-font-size-large (adicionada pelo Zendesk em <p> e <li>)
+  tmp.querySelectorAll('[class]').forEach(el => {
+    const cls = el.getAttribute('class').replace(/\bwysiwyg-font-size-large\b/g, '').trim();
+    if (cls) el.setAttribute('class', cls); else el.removeAttribute('class');
+  });
+
+  // Remove data-list-item-id dos <li>
+  tmp.querySelectorAll('li[data-list-item-id]').forEach(li => li.removeAttribute('data-list-item-id'));
+
+  // Remove id dos headings
+  tmp.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(h => h.removeAttribute('id'));
+
+  return tmp.innerHTML;
+}
+
 function loadHtmlFromModal() {
   const html = document.getElementById('colarHtmlArea').value.trim();
   if (!html) { toast('Cole um HTML antes de carregar.', 'err'); return; }
+  const processed = preprocessZendeskHtml(html);
   S.quill.root.innerHTML = '';
-  S.quill.clipboard.dangerouslyPasteHTML(0, html);
+  S.quill.clipboard.dangerouslyPasteHTML(0, processed);
   closeColarHtmlModal();
   toast('HTML carregado no editor!', 'ok');
 }
